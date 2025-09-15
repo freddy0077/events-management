@@ -38,13 +38,29 @@ export class EventsService {
 
     // Add meals if provided
     if (meals && meals.length > 0) {
+      // Track session names to ensure uniqueness
+      const sessionNameCounts = new Map<string, number>();
+      
       eventCreateData.meals = {
-        create: meals.map(meal => ({
-          sessionName: meal.name,
-          startTime: new Date(meal.beginTime),
-          endTime: new Date(meal.endTime),
-          description: meal.description,
-        })),
+        create: meals.map(meal => {
+          let sessionName = meal.name;
+          
+          // Check if this session name already exists
+          if (sessionNameCounts.has(sessionName)) {
+            const count = sessionNameCounts.get(sessionName)! + 1;
+            sessionNameCounts.set(sessionName, count);
+            sessionName = `${meal.name} ${count}`;
+          } else {
+            sessionNameCounts.set(sessionName, 1);
+          }
+          
+          return {
+            sessionName,
+            startTime: new Date(meal.beginTime),
+            endTime: new Date(meal.endTime),
+            description: meal.description,
+          };
+        }),
       };
     }
 
