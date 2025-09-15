@@ -1,0 +1,783 @@
+# ------------------------------------------------------
+# THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
+# ------------------------------------------------------
+
+input AssignStaffInput {
+  eventId: ID!
+  permissions: JSON
+  role: EventStaffRole!
+  userId: ID!
+}
+
+type AttendanceAnalytics {
+  byCategory: [AttendanceByCategory!]!
+  byTimeSlot: [AttendanceByTimeSlot!]!
+}
+
+type AttendanceByCategory {
+  actual: Float!
+  category: String!
+  expected: Float!
+  rate: Float!
+}
+
+type AttendanceByTimeSlot {
+  avgAttendance: Float!
+  sessions: Float!
+  timeSlot: String!
+}
+
+type AuditActionCount {
+  action: String!
+  count: Int!
+}
+
+type AuditEvent {
+  id: ID!
+  name: String!
+}
+
+type AuditLog {
+  action: String!
+  createdAt: DateTime!
+  details: JSON!
+  event: AuditEvent
+  eventId: String
+  id: ID!
+  ipAddress: String
+  performedBy: String!
+  performedByUser: AuditUser
+  registration: AuditRegistration
+  registrationId: String
+  userAgent: String
+}
+
+type AuditLogConnection {
+  hasMore: Boolean!
+  logs: [AuditLog!]!
+  total: Int!
+}
+
+type AuditRegistration {
+  email: String!
+  fullName: String!
+  id: ID!
+}
+
+type AuditStats {
+  actionCounts: [AuditActionCount!]!
+  topUsers: [AuditUserCount!]!
+  totalLogs: Int!
+}
+
+type AuditUser {
+  email: String
+  firstName: String
+  fullName: String!
+  id: ID!
+  lastName: String
+}
+
+type AuditUserCount {
+  count: Int!
+  userId: String!
+}
+
+type AuthPayload {
+  accessToken: String!
+  user: UserPayload!
+}
+
+type Category {
+  createdAt: DateTime!
+  currentCount: Int
+  description: String
+  eventId: String!
+  id: ID!
+  isActive: Boolean!
+  maxCapacity: Int
+  name: String!
+  price: Float!
+  updatedAt: DateTime!
+}
+
+type CateringMetrics {
+  activeMealSessions: Int!
+  checkedInToday: Int!
+  completedMeals: Int!
+  pendingMeals: Int!
+  totalMealSessions: Int!
+  totalParticipants: Int!
+}
+
+type CateringReportSummary {
+  averageAttendanceRate: Float!
+  totalEvents: Float!
+  totalMealSessions: Float!
+  totalMealsServed: Float!
+  totalParticipants: Float!
+}
+
+type CateringReports {
+  attendanceAnalytics: AttendanceAnalytics!
+  mealSessionReports: [MealSessionReport!]!
+  summary: CateringReportSummary!
+}
+
+input CateringReportsFilter {
+  dateFrom: DateTime
+  dateTo: DateTime
+  eventId: String
+  searchTerm: String
+}
+
+input ChangePasswordInput {
+  currentPassword: String!
+  newPassword: String!
+}
+
+type ChangePasswordPayload {
+  message: String!
+  success: Boolean!
+  user: UserPayload
+}
+
+input CreateCategoryInput {
+  description: String
+  maxCapacity: Int
+  name: String!
+  price: Float!
+}
+
+input CreateEventInput {
+  address: String
+  badgeTemplateId: String
+  categories: [CreateCategoryInput!]!
+  date: String!
+  depositAllowed: Boolean
+  depositPercentage: Int
+  description: String
+  endDate: String
+  fullPaymentDeadline: String
+  latePaymentFee: Float
+  maxCapacity: Int
+  meals: [CreateEventMealInput!]
+  name: String!
+  paymentDeadline: String
+  paymentRequired: Boolean
+  refundPolicy: String
+  registrationDeadline: String
+  slug: String!
+  staffAssignments: [AssignStaffInput!]
+  venue: String!
+}
+
+input CreateEventMealInput {
+  beginTime: String!
+  description: String
+  endTime: String!
+  name: String!
+}
+
+input CreateMealInput {
+  description: String
+  endTime: String!
+  eventId: ID!
+  name: String!
+  startTime: String!
+}
+
+input CreateRegistrationInput {
+  categoryId: ID!
+  eventId: ID!
+  paymentMethod: PaymentMethod
+  specialRequests: String
+}
+
+input CreateStaffRegistrationInput {
+  address: String
+  categoryId: ID!
+  email: String!
+  eventId: ID!
+  fullName: String!
+  paymentMethod: PaymentMethod
+  phone: String
+  receiptNumber: String
+  specialRequests: String
+}
+
+input CreateStandaloneCategoryInput {
+  description: String
+  eventId: String!
+  isActive: Boolean! = true
+  maxCapacity: Int
+  name: String!
+  price: Float!
+}
+
+input CreateTransactionInput {
+  amount: Float!
+  notes: String
+  paymentMethod: PaymentMethod!
+  receiptNumber: String
+  registrationId: ID!
+  transactionRef: String
+}
+
+input DashboardPaginationInput {
+  eventsLimit: Int = 5
+  eventsPage: Int = 1
+  registrationsLimit: Int = 10
+  registrationsPage: Int = 1
+}
+
+type DashboardStats {
+  activeEvents: Int!
+  activeStaff: Int!
+  averageEventCapacity: Float!
+  averageRegistrationValue: Float!
+  completedEvents: Int!
+  eventCompletionRate: Float
+  pendingPaymentAmount: Float!
+  pendingPayments: Int!
+  recentEvents: [Event!]!
+  recentEventsPagination: PaginationInfo!
+  recentRegistrations: [Registration!]!
+  recentRegistrationsPagination: PaginationInfo!
+  registrationGrowth: Float
+  revenueGrowth: Float
+  todayRegistrations: Int!
+  todayRevenue: Int!
+  todayScans: Int!
+  totalBadgesPrinted: Int!
+  totalEvents: Int!
+  totalQRScans: Int!
+  totalRegistrations: Int!
+  totalRevenue: Float!
+  totalStaff: Int!
+  upcomingEvents: Int!
+}
+
+"""
+A date-time string at UTC, such as 2019-12-03T09:54:33Z, compliant with the date-time format.
+"""
+scalar DateTime
+
+type DeleteCategoryResponse {
+  message: String!
+  success: Boolean!
+}
+
+type Event {
+  address: String
+  approvedRegistrations: Int
+  badgeTemplateId: String
+  categories: [Category!]
+  createdAt: DateTime!
+  createdBy: ID!
+  date: DateTime!
+  depositAllowed: Boolean
+  depositPercentage: Int
+  description: String
+  endDate: DateTime
+  failedRegistrations: Int
+  fullPaymentDeadline: DateTime
+  id: ID!
+  isActive: Boolean!
+  latePaymentFee: Float
+  maxCapacity: Int
+  meals: [Meal!]
+  name: String!
+  paidRegistrations: Int
+  paymentDeadline: DateTime
+  paymentRequired: Boolean
+  pendingRegistrations: Int
+  refundPolicy: String
+  registrationDeadline: DateTime
+  slug: String!
+  staff: [EventStaff!]
+  status: String
+  totalRegistrations: Int
+  updatedAt: DateTime!
+  venue: String!
+}
+
+type EventDraft {
+  createdAt: DateTime!
+  currentStep: Int!
+  draftData: JSON!
+  expiresAt: DateTime!
+  id: ID!
+  lastSavedAt: DateTime!
+  updatedAt: DateTime!
+  userId: ID!
+}
+
+type EventStaff {
+  assignedAt: DateTime!
+  assignedBy: ID!
+  assignedByUser: User
+  event: Event
+  eventId: ID!
+  id: ID!
+  isActive: Boolean!
+  permissions: JSON
+  role: EventStaffRole!
+  user: User
+  userId: ID!
+}
+
+type EventStaffList {
+  staff: [EventStaff!]!
+  total: Float!
+}
+
+"""The role of a staff member in an event"""
+enum EventStaffRole {
+  MANAGER
+  ORGANIZER
+  STAFF
+  SUPERVISOR
+}
+
+input FailedScanInput {
+  errorMessage: String!
+  eventId: ID
+  mealId: ID
+  notes: String
+  qrCode: String!
+  scanMethod: String!
+}
+
+type FailedScanResult {
+  auditLogId: String
+  message: String!
+  success: Boolean!
+}
+
+type FinancialSummary {
+  averageTransaction: Float!
+  paidAmount: Float!
+  pendingAmount: Float!
+  refundedAmount: Float!
+  totalRevenue: Float!
+  transactionCount: Float!
+}
+
+"""
+The `JSON` scalar type represents JSON values as specified by [ECMA-404](http://www.ecma-international.org/publications/files/ECMA-ST/ECMA-404.pdf).
+"""
+scalar JSON
+
+input LoginInput {
+  email: String!
+  password: String!
+}
+
+type LogoutPayload {
+  message: String!
+  success: Boolean!
+}
+
+type Meal {
+  createdAt: DateTime!
+  description: String
+  endTime: DateTime!
+  event: Event
+  eventId: String!
+  id: ID!
+  isActive: Boolean!
+  location: String
+  maxCapacity: Int
+  name: String
+  sessionName: String!
+  sessionTime: String
+  startTime: DateTime!
+  status: String
+  totalAttendees: Int
+  updatedAt: DateTime!
+}
+
+type MealAttendance {
+  createdAt: DateTime
+  id: ID!
+  meal: Meal
+  mealId: String!
+  notes: String
+  registrationId: String!
+  scannedAt: DateTime!
+  scannedBy: String
+  updatedAt: DateTime
+}
+
+type MealSessionActionResult {
+  meal: Meal
+  message: String!
+  success: Boolean!
+}
+
+type MealSessionReport {
+  actualAttendees: Float!
+  attendanceRate: Float!
+  date: DateTime!
+  eventName: String!
+  expectedAttendees: Float!
+  id: ID!
+  mealName: String!
+  status: String!
+}
+
+type Mutation {
+  assignEventManager(eventId: ID!, userId: ID!): EventStaff!
+  assignStaffToEvent(input: AssignStaffInput!): StaffAssignmentPayload!
+  bulkGenerateQRCodes(registrationIds: [ID!]!): [QRCodeGenerationResult!]!
+  cancelRegistration(id: ID!): Boolean!
+  changePassword(input: ChangePasswordInput!): ChangePasswordPayload!
+  confirmPayment(paymentDate: DateTime, transactionId: ID!): Transaction!
+  createCategory(input: CreateStandaloneCategoryInput!): Category!
+  createEvent(input: CreateEventInput!): Event!
+  createMeal(input: CreateMealInput!): Meal!
+  createRegistration(input: CreateRegistrationInput!): RegistrationPayload!
+  createStaffRegistration(input: CreateStaffRegistrationInput!): RegistrationPayload!
+  createTransaction(input: CreateTransactionInput!): Transaction!
+  deleteCategory(id: ID!): DeleteCategoryResponse!
+  deleteEvent(id: ID!): Boolean!
+  deleteEventDraft: Boolean!
+  deleteMeal(id: ID!): Boolean!
+  endMealSession(id: ID!): MealSessionActionResult!
+  forcePasswordChange(input: ChangePasswordInput!): ChangePasswordPayload!
+  generateBadge(badgeTemplateId: String, format: String! = "pdf", registrationId: ID!): String!
+  generateBadgeSheet(registrationIds: [ID!]!): String!
+  generateQRCode(registrationId: ID!): QRCodeGenerationResult!
+  login(input: LoginInput!): AuthPayload!
+  logout: LogoutPayload!
+  markTransactionFailed(reason: String, transactionId: ID!): Transaction!
+  processPayment(amount: Float!, notes: String, paymentMethod: PaymentMethod!, paymentReference: String, registrationId: ID!): PaymentConfirmationPayload!
+  processRefund(input: RefundTransactionInput!, transactionId: ID!): Transaction!
+  recordFailedScan(input: FailedScanInput!): FailedScanResult!
+  refreshToken: AuthPayload!
+  regenerateBadge(badgeTemplateId: String, format: String! = "pdf", registrationId: ID!): String!
+  regenerateQRCode(registrationId: ID!): QRCodeGenerationResult!
+  registerUser(input: RegisterUserInput!): RegisterUserPayload!
+  removeEventManager(eventId: ID!, userId: ID!): Boolean!
+  removeStaffFromEvent(staffId: ID!): Boolean!
+  saveEventDraft(input: SaveEventDraftInput!): EventDraft!
+  scanMealQRCode(input: ScanQRCodeInput!): ScanResult!
+  serveMeal(input: ServeMealInput!): ServeMealResult!
+  startMealSession(id: ID!): MealSessionActionResult!
+  toggleCategoryStatus(id: ID!): Category!
+  updateCategory(id: ID!, input: UpdateCategoryInput!): Category!
+  updateEvent(id: ID!, input: UpdateEventInput!): Event!
+  updateEventDraft(input: UpdateEventDraftInput!): EventDraft!
+  updateMeal(id: ID!, input: UpdateMealInput!): Meal!
+  updateRegistration(id: ID!, input: UpdateRegistrationInput!): Registration!
+  updateStaffRole(input: UpdateStaffRoleInput!): StaffAssignmentPayload!
+  validateQRCode(input: ValidateQRCodeInput!): QRCodeValidationResponse!
+}
+
+type PaginationInfo {
+  hasNext: Boolean!
+  hasPrev: Boolean!
+  limit: Int!
+  page: Int!
+  total: Int!
+  totalPages: Int!
+}
+
+type PaymentConfirmationPayload {
+  message: String
+  registration: Registration!
+  success: Boolean!
+}
+
+enum PaymentMethod {
+  BANK_TRANSFER
+  CARD
+  CASH
+  MOBILE_MONEY
+  ONLINE
+}
+
+enum PaymentStatus {
+  CANCELLED
+  FAILED
+  PAID
+  PARTIAL
+  PENDING
+  REFUNDED
+}
+
+type QRCodeData {
+  category: String!
+  checksum: String!
+  eventId: String!
+  participantName: String!
+  registrationId: String!
+  timestamp: String!
+}
+
+type QRCodeGenerationResult {
+  base64Image: String!
+  qrCode: String!
+  qrCodeData: QRCodePayload!
+}
+
+type QRCodePayload {
+  category: String!
+  checksum: String!
+  eventId: String!
+  participantName: String!
+  registrationId: String!
+  timestamp: String!
+}
+
+type QRCodeValidationResponse {
+  isValid: Boolean!
+  message: String!
+  qrCodeData: QRCodeData
+  success: Boolean!
+}
+
+type QRCodeValidationResult {
+  isValid: Boolean!
+  message: String
+  payload: QRCodePayload
+}
+
+type Query {
+  activeCategories: [Category!]!
+  activeCategoriesByEvent(eventId: ID!): [Category!]!
+  activeEvents: [Event!]!
+  activeMeals: [Meal!]!
+  availableEventManagers(searchQuery: String): [User!]!
+  categories: [Category!]!
+  categoriesByEvent(eventId: ID!): [Category!]!
+  category(id: ID!): Category!
+  checkEventPermission(eventId: ID!, requiredRole: String): Boolean!
+  dashboardStats(pagination: DashboardPaginationInput): DashboardStats!
+  event(id: ID!): Event!
+  eventBySlug(slug: String!): Event!
+  eventManagers(eventId: ID!): [EventStaff!]!
+  eventRegistrations(eventId: ID!): [Registration!]!
+  eventStaff(eventId: ID!): EventStaffList!
+  events: [Event!]!
+  getAuditLogs(action: String, endDate: DateTime, eventId: String, limit: Int! = 50, offset: Int! = 0, performedBy: String, registrationId: String, startDate: DateTime): AuditLogConnection!
+  getAuditStats(endDate: DateTime, eventId: String, startDate: DateTime): AuditStats!
+  getCateringMetrics(eventId: ID): CateringMetrics!
+  getCateringRegistrations(eventId: ID, mealFilter: String, statusFilter: String): [Registration!]!
+  getCateringReports(filter: CateringReportsFilter): CateringReports!
+  getEventDraft: EventDraft
+  getFailedScans(eventId: String, limit: Int! = 50, offset: Int! = 0): AuditLogConnection!
+  getFinancialSummary(eventId: ID): FinancialSummary!
+  getMealSessions(eventId: ID): [Meal!]!
+  getQRCodeImage(registrationId: ID!): String
+  getRegistrationPaymentStatus(registrationId: ID!): RegistrationPaymentStatus!
+  getTransaction(transactionId: ID!): Transaction
+  getTransactions(dateFrom: DateTime, dateTo: DateTime, eventId: ID, limit: Float = 50, offset: Float = 0, paymentMethod: PaymentMethod, paymentStatus: PaymentStatus): TransactionConnection!
+  getTransactionsByRegistration(registrationId: ID!): [Transaction!]!
+  me: UserPayload!
+  meal(id: ID!): Meal!
+  mealAttendance(mealId: ID!): [MealAttendance!]!
+  mealsByEvent(eventId: ID!): [Meal!]!
+  myAssignedEvents: [Event!]!
+  myEventStaff: [EventStaff!]!
+  myRegistrations: [Registration!]!
+  recentMealAttendances(eventId: ID, limit: Float = 50): [MealAttendance!]!
+  registration(id: ID!): Registration!
+  registrationByQRCode(qrCode: String!): Registration!
+  registrations(eventId: String, eventIds: [String!], limit: Int, offset: Int): [Registration!]!
+  searchRegistrationByReceipt(receiptNumber: String!): Registration
+  validateQRCode(qrCode: String!): QRCodeValidationResult!
+}
+
+input RefundTransactionInput {
+  refundAmount: Float!
+  refundReason: String!
+  refundedBy: ID!
+}
+
+input RegisterUserInput {
+  email: String!
+  firstName: String!
+  lastName: String!
+  mustChangePassword: Boolean
+  password: String!
+  role: String!
+}
+
+type RegisterUserPayload {
+  message: String!
+  success: Boolean!
+  user: UserPayload
+}
+
+type Registration {
+  address: String!
+  category: Category
+  categoryId: String!
+  checkedIn: Boolean!
+  checkedInAt: DateTime
+  createdAt: DateTime!
+  email: String!
+  event: Event
+  eventId: String!
+  firstName: String
+  fullName: String!
+  id: ID!
+  lastName: String
+  mealAttendances: [MealAttendance!]
+  notes: String
+  paymentStatus: PaymentStatus!
+  phone: String!
+  qrCode: String
+  registeredBy: String
+  transactions: [Transaction!]
+  updatedAt: DateTime!
+}
+
+type RegistrationPayload {
+  paymentUrl: String
+  qrCodeData: String!
+  registration: Registration!
+}
+
+type RegistrationPaymentStatus {
+  paidAmount: Float!
+  paymentStatus: String!
+  pendingAmount: Float!
+  refundedAmount: Float!
+  totalAmount: Float!
+}
+
+input SaveEventDraftInput {
+  currentStep: Int!
+  draftData: JSON!
+}
+
+input ScanQRCodeInput {
+  mealId: ID!
+  notes: String
+  qrCode: String!
+}
+
+type ScanResult {
+  alreadyScanned: Boolean
+  attendance: MealAttendance
+  message: String!
+  participantName: String
+  success: Boolean!
+}
+
+input ServeMealInput {
+  mealId: ID!
+  notes: String
+  registrationId: ID!
+}
+
+type ServeMealResult {
+  attendance: MealAttendance
+  message: String!
+  participantName: String
+  success: Boolean!
+}
+
+type StaffAssignmentPayload {
+  message: String
+  staff: EventStaff
+  success: Boolean!
+}
+
+type Transaction {
+  amount: Float!
+  createdAt: DateTime!
+  id: ID!
+  notes: String
+  paymentDate: DateTime
+  paymentMethod: PaymentMethod!
+  paymentStatus: PaymentStatus!
+  processedBy: ID!
+  processorId: String
+  receiptNumber: String
+  refundAmount: Float
+  refundDate: DateTime
+  refundReason: String
+  refundedBy: String
+  registrationId: ID!
+  transactionRef: String
+  updatedAt: DateTime!
+}
+
+type TransactionConnection {
+  total: Float!
+  transactions: [Transaction!]!
+}
+
+input UpdateCategoryInput {
+  description: String
+  isActive: Boolean
+  maxCapacity: Int
+  name: String
+  price: Float
+}
+
+input UpdateEventDraftInput {
+  currentStep: Int
+  draftData: JSON
+  id: ID!
+}
+
+input UpdateEventInput {
+  date: String
+  description: String
+  isActive: Boolean
+  maxCapacity: Int
+  name: String
+  slug: String
+  venue: String
+}
+
+input UpdateMealInput {
+  description: String
+  endTime: String
+  isActive: Boolean
+  name: String
+  startTime: String
+}
+
+input UpdateRegistrationInput {
+  paymentReference: String
+  paymentStatus: PaymentStatus
+  specialRequests: String
+}
+
+input UpdateStaffRoleInput {
+  isActive: Boolean
+  permissions: JSON
+  role: EventStaffRole!
+  staffId: ID!
+}
+
+type User {
+  createdAt: DateTime!
+  email: String!
+  firstName: String!
+  id: ID!
+  isActive: Boolean!
+  lastName: String!
+  mustChangePassword: Boolean
+  role: String!
+  updatedAt: DateTime!
+}
+
+type UserPayload {
+  email: String!
+  firstName: String
+  id: String!
+  lastName: String
+  mustChangePassword: Boolean
+  role: String!
+}
+
+input ValidateQRCodeInput {
+  qrCode: String!
+}

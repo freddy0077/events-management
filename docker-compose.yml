@@ -1,0 +1,84 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:15-alpine
+    container_name: events_db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${DB_USER:-events_user}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-events_pass}
+      POSTGRES_DB: ${DB_NAME:-events_db}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - events_network
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile.dev
+    container_name: events_backend
+    restart: unless-stopped
+    environment:
+      DATABASE_URL: postgresql://${DB_USER:-events_user}:${DB_PASSWORD:-events_pass}@postgres:5432/${DB_NAME:-events_db}
+      JWT_SECRET: ${JWT_SECRET:-your-secret-key-change-in-production}
+      REDIS_URL: redis://redis:6379
+      NODE_ENV: ${NODE_ENV:-development}
+      PORT: 3001
+      GRAPHQL_PLAYGROUND: true
+      GRAPHQL_INTROSPECTION: true
+      CORS_ORIGIN: http://localhost:3000
+    ports:
+      - "3001:3001"
+    depends_on:
+      - postgres
+      - redis
+    volumes:
+      - ./backend:/app
+      - /app/node_modules
+    networks:
+      - events_network
+    command: pnpm run start:dev
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.dev
+    container_name: events_frontend
+    restart: unless-stopped
+    environment:
+      NEXT_PUBLIC_API_URL: http://localhost:3001
+      NODE_ENV: ${NODE_ENV:-development}
+    ports:
+      - "3000:3000"
+    depends_on:
+      - backend
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+      - /app/.next
+    networks:
+      - events_network
+    command: pnpm run dev
+
+  redis:
+    image: redis:7-alpine
+    container_name: events_redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - events_network
+
+volumes:
+  postgres_data:
+  redis_data:
+
+networks:
+  events_network:
+    driver: bridge

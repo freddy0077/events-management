@@ -1,0 +1,29 @@
+overwrite: true
+schema: "http://localhost:3001/graphql"
+documents: 
+  - "lib/apollo/**/*.ts"
+  - "components/**/*.tsx"
+  - "app/**/*.tsx"
+generates:
+  lib/apollo/generated.ts:
+    plugins:
+      - "typescript"
+      - "typescript-operations"
+      - "typescript-react-apollo"
+    config:
+      withHooks: true
+      withComponent: false
+      withHOC: false
+      apolloReactHooksImportFrom: "@apollo/client"
+      skipTypename: false
+      enumsAsTypes: true
+      dedupeOperationSuffix: true
+      omitOperationSuffix: false
+      exportFragmentSpreadSubTypes: true
+      experimentalFragmentVariables: true
+  schema.graphql:
+    plugins:
+      - "schema-ast"
+  introspection.json:
+    plugins:
+      - "introspection"

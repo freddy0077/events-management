@@ -1,0 +1,280 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider      = "prisma-client-js"
+  binaryTargets = ["native", "linux-musl-arm64-openssl-3.0.x"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id                String   @id @default(cuid())
+  email             String   @unique
+  password          String
+  role              Role     @default(REGISTRATION_STAFF)
+  firstName         String?
+  lastName          String?
+  isActive          Boolean  @default(true)
+  mustChangePassword Boolean  @default(false)
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  // Relations for staff assignments
+  eventStaffAssignments EventStaff[]
+  createdEvents         Event[]      @relation("EventCreator")
+  processedTransactions Transaction[] @relation("ProcessedTransactions")
+  confirmedTransactions Transaction[] @relation("ConfirmedTransactions")
+  refundedTransactions  Transaction[] @relation("RefundedTransactions")
+  eventDrafts           EventDraft[]
+
+  @@map("users")
+}
+
+model Event {
+  id                    String   @id @default(cuid())
+  name                  String
+  slug                  String   @unique
+  date                  DateTime
+  endDate               DateTime?
+  venue                 String
+  address               String?
+  description           String?
+  maxCapacity           Int?
+  paymentRequired       Boolean  @default(false)
+  registrationDeadline  DateTime?
+  paymentDeadline       DateTime?
+  depositAllowed        Boolean  @default(false)
+  depositPercentage     Int?
+  fullPaymentDeadline   DateTime?
+  latePaymentFee        Decimal? @db.Decimal(10, 2)
+  refundPolicy          String?
+  badgeTemplateId       String?  // Badge template selection for event
+  isActive              Boolean  @default(true)
+  
+  // Event creator (organizer)
+  createdBy             String
+  creator               User     @relation("EventCreator", fields: [createdBy], references: [id])
+  
+  // Relations
+  categories            Category[]
+  registrations         Registration[]
+  meals                 Meal[]
+  auditLogs             AuditLog[]
+  staff                 EventStaff[]
+  
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+
+  @@index([createdBy])
+  @@map("events")
+}
+
+model EventDraft {
+  id                String   @id @default(cuid())
+  userId            String   // User who is creating the draft
+  draftData         Json     // JSON containing the form data
+  currentStep       Int      @default(1) // Current step in the creation process
+  lastSavedAt       DateTime @default(now())
+  expiresAt         DateTime // Auto-cleanup old drafts
+  
+  // Relations
+  user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  @@unique([userId]) // One draft per user at a time
+  @@index([userId])
+  @@index([expiresAt])
+  @@map("event_drafts")
+}
+
+model Category {
+  id            String   @id @default(cuid())
+  eventId       String
+  name          String
+  price         Decimal  @db.Decimal(10, 2)
+  maxCapacity   Int?
+  description   String?
+  isActive      Boolean  @default(true)
+  event         Event    @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  registrations Registration[]
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  
+  @@unique([eventId, name])
+  @@map("categories")
+}
+
+model Registration {
+  id                  String   @id @default(cuid())
+  eventId             String
+  categoryId          String
+  fullName            String
+  email               String
+  phone               String
+  address             String
+  qrCode              String?  @unique
+  qrCodeData          Json?
+  qrCodeGeneratedAt   DateTime?
+  checkedIn           Boolean  @default(false)
+  checkedInAt         DateTime?
+  mealServed          Boolean  @default(false)
+  mealServedAt        DateTime?
+  mealServedBy        String?  // Staff member who served the meal
+  notes               String?
+  registeredBy        String?  // Staff member who registered this participant
+  event               Event    @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  category            Category @relation(fields: [categoryId], references: [id])
+  transactions        Transaction[]
+  mealAttendances     MealAttendance[]
+  auditLogs           AuditLog[]
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  @@index([eventId])
+  @@index([qrCode])
+  @@index([email])
+  @@map("registrations")
+}
+
+model Meal {
+  id            String   @id @default(cuid())
+  eventId       String
+  sessionName   String
+  startTime     DateTime
+  endTime       DateTime
+  maxCapacity   Int?
+  description   String?
+  isActive      Boolean  @default(true)
+  event         Event    @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  attendances   MealAttendance[]
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  
+  @@unique([eventId, sessionName])
+  @@index([eventId])
+  @@map("meals")
+}
+
+model MealAttendance {
+  id             String   @id @default(cuid())
+  registrationId String
+  mealId         String
+  scannedAt      DateTime @default(now())
+  scannedBy      String?
+  notes          String?
+  registration   Registration @relation(fields: [registrationId], references: [id], onDelete: Cascade)
+  meal           Meal     @relation(fields: [mealId], references: [id], onDelete: Cascade)
+  
+  @@unique([registrationId, mealId])
+  @@index([mealId])
+  @@index([scannedAt])
+  @@map("meal_attendances")
+}
+
+model AuditLog {
+  id             String   @id @default(cuid())
+  eventId        String?
+  registrationId String?
+  action         String
+  details        Json
+  performedBy    String
+  ipAddress      String?
+  userAgent      String?
+  event          Event?   @relation(fields: [eventId], references: [id])
+  registration   Registration? @relation(fields: [registrationId], references: [id])
+  createdAt      DateTime @default(now())
+
+  @@index([eventId])
+  @@index([createdAt])
+  @@map("audit_logs")
+}
+
+model EventStaff {
+  id          String         @id @default(cuid())
+  eventId     String
+  userId      String
+  role        EventStaffRole @default(STAFF)
+  permissions Json?          // Additional permissions specific to this event
+  isActive    Boolean        @default(true)
+  assignedBy  String         // User ID who assigned this staff member
+  assignedAt  DateTime       @default(now())
+  
+  // Relations
+  event       Event          @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  user        User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@unique([eventId, userId])
+  @@index([eventId])
+  @@index([userId])
+  @@map("event_staff")
+}
+
+model Transaction {
+  id              String        @id @default(cuid())
+  registrationId  String
+  amount          Decimal       @db.Decimal(10, 2)
+  paymentMethod   PaymentMethod
+  paymentStatus   PaymentStatus @default(PENDING)
+  receiptNumber   String?       @unique
+  transactionRef  String?       // External transaction reference
+  notes           String?
+  paymentDate     DateTime?     // When payment was actually received
+  processedBy     String        // User ID who processed this transaction
+  confirmedBy     String?       // User ID who confirmed the payment
+  refundAmount    Decimal?      @db.Decimal(10, 2)
+  refundReason    String?
+  refundedBy      String?       // User ID who processed the refund
+  refundedAt      DateTime?
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+
+  // Relations
+  registration    Registration  @relation(fields: [registrationId], references: [id], onDelete: Cascade)
+  processor       User          @relation("ProcessedTransactions", fields: [processedBy], references: [id])
+  confirmer       User?         @relation("ConfirmedTransactions", fields: [confirmedBy], references: [id])
+  refunder        User?         @relation("RefundedTransactions", fields: [refundedBy], references: [id])
+
+  @@index([registrationId])
+  @@index([paymentStatus])
+  @@index([paymentMethod])
+  @@index([createdAt])
+  @@map("transactions")
+}
+
+enum PaymentStatus {
+  PENDING     // Payment initiated but not yet processed
+  PAID        // Payment successfully completed
+  FAILED      // Payment failed or declined
+  REFUNDED    // Payment was refunded
+  PARTIAL     // Partial payment received (for deposits)
+  CANCELLED   // Payment was cancelled
+}
+
+enum PaymentMethod {
+  CASH
+  CARD
+  MOBILE_MONEY
+  BANK_TRANSFER
+  ONLINE
+}
+
+enum Role {
+  ADMIN                // System owner - creates events, manages everything, assigns event managers
+  EVENT_ORGANIZER      // Event manager - manages assigned events, adds event staff, oversees operations
+  REGISTRATION_STAFF   // Registers participants, processes payments, prints QR tags
+  FINANCE_TEAM         // Monitors and reconciles payments received
+  CATERING_TEAM        // Verifies eligibility during meal sessions via QR scans
+}
+
+enum EventStaffRole {
+  STAFF           // Basic staff member - can register participants, scan QR codes
+  SUPERVISOR      // Can manage other staff, view reports
+  MANAGER         // Can modify event settings, manage all aspects
+  ORGANIZER       // Full control over the event (usually the creator)
+}

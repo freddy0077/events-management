@@ -1,0 +1,33 @@
+# Development Dockerfile for NestJS backend
+FROM node:18-alpine
+
+WORKDIR /app
+
+# Install dependencies for development
+RUN apk add --no-cache curl openssl openssl-dev
+
+# Enable corepack and install pnpm
+RUN corepack enable
+RUN corepack prepare pnpm@latest --activate
+
+# Set pnpm store directory to avoid conflicts
+RUN pnpm config set store-dir /app/.pnpm-store
+
+# Copy package files first
+COPY package.json pnpm-lock.yaml* ./
+COPY prisma ./prisma/
+
+# Install all dependencies (including dev)
+RUN pnpm install --shamefully-hoist
+
+# Generate Prisma client
+RUN pnpm exec prisma generate
+
+# Copy source code
+COPY . .
+
+# Expose port
+EXPOSE 3001
+
+# Start development server with hot reload
+CMD ["pnpm", "run", "start:dev"]
