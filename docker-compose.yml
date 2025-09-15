@@ -30,7 +30,7 @@ services:
       PORT: 3001
       GRAPHQL_PLAYGROUND: true
       GRAPHQL_INTROSPECTION: true
-      CORS_ORIGIN: http://localhost:3000
+      CORS_ORIGIN: http://13.38.109.217:3000
     ports:
       - "3001:3001"
     depends_on:
@@ -50,7 +50,7 @@ services:
     container_name: events_frontend
     restart: unless-stopped
     environment:
-      NEXT_PUBLIC_API_URL: http://localhost:3001
+      NEXT_PUBLIC_API_URL: http://13.38.109.217:3001
       NODE_ENV: ${NODE_ENV:-development}
     ports:
       - "3000:3000"
