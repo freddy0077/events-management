@@ -265,6 +265,26 @@ export default function CreateEventPage() {
 
   // Check if next button should be disabled for current step
   const isNextDisabled = () => {
+    if (currentStep === 1) { // Event Details step
+      // Check for end date validation error
+      if (formData.date && formData.endDate) {
+        const startDate = new Date(formData.date)
+        const endDate = new Date(formData.endDate)
+        if (endDate < startDate) {
+          return true
+        }
+      }
+      
+      // Check for registration deadline validation error
+      if (formData.registrationDeadline && formData.date) {
+        const regDeadline = new Date(formData.registrationDeadline)
+        const eventStart = new Date(formData.date)
+        if (regDeadline >= eventStart) {
+          return true
+        }
+      }
+    }
+    
     if (currentStep === 2) { // Categories step
       if (formData.maxCapacity > 0) {
         const totalCategoryCapacity = formData.categories.reduce((sum, cat) => sum + (cat.maxCapacity || 0), 0)
@@ -328,6 +348,26 @@ export default function CreateEventPage() {
         if (!formData.name) newErrors.name = 'Event name is required'
         if (!formData.date) newErrors.date = 'Event date is required'
         if (!formData.venue) newErrors.venue = 'Venue is required'
+        
+        // Validate end date is not before start date
+        if (formData.date && formData.endDate) {
+          const startDate = new Date(formData.date)
+          const endDate = new Date(formData.endDate)
+          
+          if (endDate < startDate) {
+            newErrors.endDate = 'End date must be equal to or after the start date'
+          }
+        }
+        
+        // Validate registration deadline is before event start date
+        if (formData.registrationDeadline && formData.date) {
+          const regDeadline = new Date(formData.registrationDeadline)
+          const eventStart = new Date(formData.date)
+          
+          if (regDeadline >= eventStart) {
+            newErrors.registrationDeadline = 'Registration deadline must be before event start date'
+          }
+        }
         break
       case 2: // Categories
         if (formData.categories.length === 0) {
@@ -446,6 +486,30 @@ export default function CreateEventPage() {
       if (!formData.name || !formData.date || !formData.venue) {
         toast.error('Please fill in all required fields (Name, Date, Venue)')
         return
+      }
+
+      // Validate end date is not before start date
+      if (formData.date && formData.endDate) {
+        const startDate = new Date(formData.date)
+        const endDate = new Date(formData.endDate)
+        
+        if (endDate < startDate) {
+          toast.error('End date must be equal to or after the start date')
+          setCurrentStep(1) // Go back to event details step
+          return
+        }
+      }
+
+      // Validate registration deadline is before event start date
+      if (formData.registrationDeadline && formData.date) {
+        const regDeadline = new Date(formData.registrationDeadline)
+        const eventStart = new Date(formData.date)
+        
+        if (regDeadline >= eventStart) {
+          toast.error('Registration deadline must be before event start date')
+          setCurrentStep(1) // Go back to event details step
+          return
+        }
       }
 
       // Validate category capacities against event maximum capacity

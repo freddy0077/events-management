@@ -22,16 +22,19 @@ export function PaymentSettingsStep({ formData, setFormData, errors, setErrors }
 
   // Helper function to validate payment timeline
   const validatePaymentTimeline = () => {
-    const { startDate } = getEventDateRange()
+    const { startDate, endDate } = getEventDateRange()
     const validationErrors: string[] = []
 
     if (!startDate) return validationErrors
 
-    // Validate payment deadline
+    // Use end date as the final deadline (or start date if single day event)
+    const finalDeadline = endDate || startDate
+
+    // Validate payment deadline - allow until event end date
     if (formData.paymentDeadline) {
       const paymentDeadline = new Date(formData.paymentDeadline)
-      if (paymentDeadline >= startDate) {
-        validationErrors.push('Payment deadline must be before the event start date')
+      if (paymentDeadline > finalDeadline) {
+        validationErrors.push('Payment deadline must be no later than the event end date')
       }
     }
 
@@ -39,8 +42,8 @@ export function PaymentSettingsStep({ formData, setFormData, errors, setErrors }
     if (formData.depositAllowed && formData.fullPaymentDeadline) {
       const fullPaymentDeadline = new Date(formData.fullPaymentDeadline)
       
-      if (fullPaymentDeadline >= startDate) {
-        validationErrors.push('Full payment deadline must be before the event start date')
+      if (fullPaymentDeadline > finalDeadline) {
+        validationErrors.push('Full payment deadline must be no later than the event end date')
       }
 
       // Full payment deadline should be after or equal to payment deadline
@@ -95,13 +98,13 @@ export function PaymentSettingsStep({ formData, setFormData, errors, setErrors }
             </div>
             <p className="text-sm text-blue-700">
               {isMultiDay ? (
-                <>Multi-day event: {startDate.toLocaleDateString()} - {endDate?.toLocaleDateString()}</>
+                <>Multi-day event: {startDate.toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' })} - {endDate?.toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' })}</>
               ) : (
-                <>Single-day event: {startDate.toLocaleDateString()}</>
+                <>Single-day event: {startDate.toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' })}</>
               )}
             </p>
             <p className="text-xs text-blue-600 mt-1">
-              Payment deadlines must be before the event start date
+              Payment deadlines can be set up to the event end date (ideal for events where first date is arrival)
             </p>
           </div>
         )}

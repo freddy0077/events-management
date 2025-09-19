@@ -262,15 +262,7 @@ export const CentralizedBadgeRenderer: React.FC<CentralizedBadgeRendererProps> =
             textAlign: styledLayout.eventSection.eventName.align
           }}
         >
-          {/* Separator Line */}
-          <div
-            style={{
-              width: `${(scaledWidth - (styledLayout.dimensions.margin * 2 * scale) - (40 * scale))}px`,
-              height: `${styledLayout.eventSection.separator.width * scale}px`,
-              backgroundColor: styledLayout.eventSection.separator.color,
-              margin: `${styledLayout.eventSection.separator.marginTop * scale}px auto ${styledLayout.eventSection.separator.marginBottom * scale}px auto`
-            }}
-          />
+          {/* Separator Line - REMOVED to fix horizontal line issue */}
 
           {/* Event Details */}
           <div
@@ -360,15 +352,7 @@ export const CentralizedBadgeRenderer: React.FC<CentralizedBadgeRendererProps> =
           textAlign: 'center'
         }}
       >
-        {/* Separator Line */}
-        <div
-          style={{
-            width: '100%',
-            height: `${styledLayout.footer.separator.width * scale}px`,
-            backgroundColor: styledLayout.footer.separator.color,
-            marginBottom: `${styledLayout.footer.separator.marginBottom * scale}px`
-          }}
-        />
+        {/* Separator Line - REMOVED to fix horizontal line issue */}
 
         {/* Footer Instruction */}
         <div

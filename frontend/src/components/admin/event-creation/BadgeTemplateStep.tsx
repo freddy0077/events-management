@@ -104,16 +104,16 @@ export function BadgeTemplateStep({ formData, setFormData, errors, setErrors }: 
     return {
       ...participantData,
       eventName: formData.name || 'Sample Event',
-      eventDate: formData.date ? new Date(formData.date).toLocaleDateString('en-US', {
+      eventDate: formData.date ? new Date(formData.date).toLocaleDateString('en-GB', {
         weekday: 'long',
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric'
-      }) : new Date().toLocaleDateString('en-US', {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric'
+      }) : new Date().toLocaleDateString('en-GB', {
         weekday: 'long',
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric'
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric'
       }),
       eventVenue: formData.venue || 'Sample Venue',
       registrationId: 'SAMPLE001',

@@ -277,14 +277,14 @@ export const professionalTemplate: BadgeTemplateLayout = {
     instruction: {
       fontSize: 6,   // Reduced from 7 for better fit
       color: '#64748b',
-      text: 'Present this badge for event entry and services',
+      text: '',
       align: 'center'
     },
     branding: {
       marginTop: 10, // Reduced from 12 to optimize spacing
       fontSize: 5,   // Reduced from 6 for better fit
       color: '#94a3b8',
-      text: 'Powered by EventReg Professional',
+      text: '',
       align: 'center'
     }
   },

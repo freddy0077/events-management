@@ -12,6 +12,11 @@ export interface MealSession {
   beginTime: string
   endTime: string
   description: string
+  // Recurring functionality (frontend-only, for UI purposes)
+  isRecurring?: boolean
+  recurringPattern?: 'daily' | 'custom'
+  recurringDays?: string[] // ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday']
+  generatedFromRecurring?: boolean // True if this session was generated from recurring pattern
 }
 
 export interface EventFormData {

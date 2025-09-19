@@ -93,7 +93,7 @@ export const BadgeTemplate = forwardRef<HTMLDivElement, BadgeTemplateProps>(
           
           <div 
             className="p-4 rounded-lg text-center"
-            style={{ backgroundColor: `${categoryColor}10`, borderLeft: `4px solid ${categoryColor}` }}
+            style={{ backgroundColor: `${categoryColor}10` }}
           >
             <h4 className="text-2xl font-bold text-gray-900 mb-1">{participantName}</h4>
             <div 
@@ -110,11 +110,19 @@ export const BadgeTemplate = forwardRef<HTMLDivElement, BadgeTemplateProps>(
           {qrCodeImage ? (
             <div className="text-center">
               <div className="mb-2">
-                <img 
-                  src={qrCodeImage} 
-                  alt="QR Code" 
-                  className="w-32 h-32 mx-auto border-2 border-gray-200 rounded-lg bg-white p-2"
-                />
+                {/* Wrap QR image in container div to avoid rendering artifacts */}
+                <div className="p-2 bg-white rounded-lg mx-auto w-fit">
+                  <img 
+                    src={qrCodeImage} 
+                    alt="QR Code" 
+                    className="w-32 h-32 block"
+                    style={{ 
+                      imageRendering: 'pixelated', // Avoid interpolation lines for bitmap QR codes
+                      imageRendering: '-webkit-optimize-contrast', // WebKit optimization
+                      imageRendering: 'crisp-edges' // Modern browsers
+                    }}
+                  />
+                </div>
               </div>
               <div className="flex items-center justify-center gap-1 text-xs text-gray-600">
                 <QrCode className="w-3 h-3" />
@@ -132,14 +140,14 @@ export const BadgeTemplate = forwardRef<HTMLDivElement, BadgeTemplateProps>(
         </div>
 
         {/* Footer */}
-        <div className="mt-4 pt-4 border-t border-gray-200 text-center">
-          <p className="text-xs text-gray-500">
-            Present this badge for event entry and meal service
-          </p>
-          <p className="text-xs text-gray-400 mt-1">
-            Powered by {getAppShortName()} • eventregistration.com
-          </p>
-        </div>
+        {/*<div className="mt-4 pt-4 border-t border-gray-200 text-center">*/}
+          {/*<p className="text-xs text-gray-500">*/}
+          {/*  Present this badge for event entry and meal service*/}
+          {/*</p>*/}
+          {/*<p className="text-xs text-gray-400 mt-1">*/}
+          {/*  Powered by {getAppShortName()} • eventregistration.com*/}
+          {/*</p>*/}
+        {/*</div>*/}
 
         {/* Print Styles */}
         <style jsx>{`

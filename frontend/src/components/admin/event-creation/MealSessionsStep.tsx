@@ -6,7 +6,9 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
-import { Plus, Trash2, Clock, AlertCircle, Info, Calendar } from 'lucide-react'
+import { Checkbox } from '@/components/ui/checkbox'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { Plus, Trash2, Clock, AlertCircle, Info, Calendar, Repeat, Copy } from 'lucide-react'
 import { StepProps, MealSession } from './types'
 
 export function MealSessionsStep({ formData, setFormData, errors, setErrors }: StepProps) {
@@ -20,6 +22,125 @@ export function MealSessionsStep({ formData, setFormData, errors, setErrors }: S
     const startDate = formData.date ? new Date(formData.date) : null
     const endDate = formData.endDate ? new Date(formData.endDate) : startDate
     return { startDate, endDate }
+  }
+
+  // Helper function to get all event dates
+  const getAllEventDates = () => {
+    const { startDate, endDate } = getEventDateRange()
+    if (!startDate) return []
+    
+    const dates: Date[] = []
+    const effectiveEndDate = endDate || startDate
+    const currentDate = new Date(startDate)
+    
+    while (currentDate <= effectiveEndDate) {
+      dates.push(new Date(currentDate))
+      currentDate.setDate(currentDate.getDate() + 1)
+    }
+    
+    return dates
+  }
+
+  // Helper function to get day name from date
+  const getDayName = (date: Date) => {
+    return date.toLocaleDateString('en-US', { weekday: 'long' }).toLowerCase()
+  }
+
+  // Helper function to format date as DD/MM/YYYY
+  const formatDate = (date: Date) => {
+    return date.toLocaleDateString('en-GB', { 
+      day: '2-digit', 
+      month: '2-digit', 
+      year: 'numeric' 
+    })
+  }
+
+  // Generate individual meal sessions from recurring pattern
+  const generateRecurringSessions = (baseSession: MealSession): MealSession[] => {
+    const { startDate, endDate } = getEventDateRange()
+    console.log('Event date range:', { startDate, endDate })
+    
+    if (!startDate) {
+      console.log('No start date found')
+      return []
+    }
+    
+    const effectiveEndDate = endDate || startDate
+    const generatedSessions: MealSession[] = []
+    
+    // Start from the event start date to include all days
+    const currentDate = new Date(startDate)
+    currentDate.setHours(0, 0, 0, 0) // Start of day
+    
+    // Create date-only versions for proper comparison
+    const endDateOnly = new Date(effectiveEndDate)
+    endDateOnly.setHours(0, 0, 0, 0) // Start of end date
+    
+    const currentDateOnly = new Date(currentDate)
+    currentDateOnly.setHours(0, 0, 0, 0) // Start of current date
+    
+    console.log('Base session date:', new Date(baseSession.beginTime))
+    console.log('Starting generation from event start date:', currentDate)
+    console.log('End date:', effectiveEndDate)
+    console.log('End date for comparison:', endDateOnly)
+    console.log('Recurring pattern:', baseSession.recurringPattern)
+    console.log('Recurring days:', baseSession.recurringDays)
+    
+    // Generate sessions for each day from current date to end date (using proper date comparison)
+    console.log('About to start while loop...')
+    console.log('Current date (normalized):', currentDateOnly)
+    console.log('End date (normalized):', endDateOnly)
+    console.log('Comparison result:', currentDateOnly <= endDateOnly)
+    
+    while (currentDateOnly <= endDateOnly) {
+      const dayName = getDayName(currentDate)
+      let shouldIncludeDay = false
+      
+      if (baseSession.recurringPattern === 'daily') {
+        // Include every day
+        shouldIncludeDay = true
+        console.log('Daily pattern - including day')
+      } else if (baseSession.recurringPattern === 'custom' && baseSession.recurringDays) {
+        // Include only selected days of the week
+        shouldIncludeDay = baseSession.recurringDays.includes(dayName)
+        console.log(`Custom pattern - checking if ${dayName} is in`, baseSession.recurringDays)
+      }
+      
+      console.log(`Checking ${currentDate.toDateString()} (${dayName}): shouldInclude = ${shouldIncludeDay}`)
+      console.log('Base session times:', { beginTime: baseSession.beginTime, endTime: baseSession.endTime })
+      
+      if (shouldIncludeDay && baseSession.beginTime && baseSession.endTime) {
+        // Calculate the time for this specific date
+        const templateBeginTime = new Date(baseSession.beginTime)
+        const templateEndTime = new Date(baseSession.endTime)
+        
+        // Create new times for this event date, preserving the time but updating the date
+        const newBeginTime = new Date(currentDate)
+        newBeginTime.setHours(templateBeginTime.getHours(), templateBeginTime.getMinutes(), 0, 0)
+        
+        const newEndTime = new Date(currentDate)
+        newEndTime.setHours(templateEndTime.getHours(), templateEndTime.getMinutes(), 0, 0)
+        
+        const generatedSession: MealSession = {
+          id: `${Date.now()}-${Math.random()}-${currentDate.getTime()}`, // Unique ID for each generated session
+          name: `${baseSession.name} - ${formatDate(currentDate)}`,
+          beginTime: newBeginTime.toISOString().slice(0, 16),
+          endTime: newEndTime.toISOString().slice(0, 16),
+          description: baseSession.description,
+          generatedFromRecurring: true // Mark as generated from recurring
+        }
+        
+        console.log('Generated session:', generatedSession)
+        generatedSessions.push(generatedSession)
+      }
+      
+      // Move to next day
+      currentDate.setDate(currentDate.getDate() + 1)
+      currentDateOnly.setDate(currentDateOnly.getDate() + 1)
+    }
+    
+    console.log(`Total generated sessions: ${generatedSessions.length}`)
+    return generatedSessions
   }
 
   // Validate meal session date range (must be within event dates)
@@ -67,7 +188,7 @@ export function MealSessionsStep({ formData, setFormData, errors, setErrors }: S
         
         // Only check for overlaps if sessions are on the same day
         if (isSameDay(start1, start2) && (start1 < end2 && end1 > start2)) {
-          const dayStr = start1.toLocaleDateString()
+          const dayStr = formatDate(start1)
           overlaps.push(`"${session1.name || 'Unnamed session'}" overlaps with "${session2.name || 'Unnamed session'}" on ${dayStr}`)
         }
       }
@@ -115,6 +236,16 @@ export function MealSessionsStep({ formData, setFormData, errors, setErrors }: S
           groups['unscheduled'] = []
         }
         groups['unscheduled'].push(session)
+      }
+    })
+    
+    // Sort sessions within each day by begin time in descending order (latest first)
+    Object.keys(groups).forEach(dayKey => {
+      if (dayKey !== 'unscheduled') {
+        groups[dayKey].sort((a, b) => {
+          if (!a.beginTime || !b.beginTime) return 0
+          return new Date(b.beginTime).getTime() - new Date(a.beginTime).getTime()
+        })
       }
     })
     
@@ -167,7 +298,10 @@ export function MealSessionsStep({ formData, setFormData, errors, setErrors }: S
       name: '',
       beginTime: defaultBeginTime,
       endTime: defaultEndTime,
-      description: ''
+      description: '',
+      isRecurring: false,
+      recurringPattern: 'daily',
+      recurringDays: []
     }
     setFormData(prev => ({
       ...prev,
@@ -175,10 +309,16 @@ export function MealSessionsStep({ formData, setFormData, errors, setErrors }: S
     }))
   }
 
-  const updateMealSession = (id: string, field: keyof MealSession, value: string) => {
+  const updateMealSession = (id: string, field: keyof MealSession, value: string | boolean | string[]) => {
     setFormData(prev => {
-      const updatedSessions = prev.mealSessions.map(session => 
-        session.id === id ? { ...session, [field]: value } : session
+      const session = prev.mealSessions.find(s => s.id === id)
+      if (!session) return prev
+      
+      const updatedSession = { ...session, [field]: value }
+      
+      // Regular session update
+      const updatedSessions = prev.mealSessions.map(s => 
+        s.id === id ? updatedSession : s
       )
       
       // Clear meal session errors when updating times
@@ -196,6 +336,94 @@ export function MealSessionsStep({ formData, setFormData, errors, setErrors }: S
         mealSessions: updatedSessions
       }
     })
+  }
+
+  // Generate recurring sessions - creates individual sessions for each day
+  const generateRecurringSessionsForMeal = (sessionId: string) => {
+    const session = formData.mealSessions.find(s => s.id === sessionId)
+    if (!session || !session.name || !session.beginTime || !session.endTime) {
+      console.log('Cannot generate recurring sessions: missing required fields', session)
+      return
+    }
+    
+    // Generate individual sessions for each selected day
+    const generatedSessions = generateRecurringSessions(session)
+    console.log('Generated sessions:', generatedSessions)
+    
+    // Only proceed if we actually generated sessions
+    if (generatedSessions.length === 0) {
+      console.log('No sessions generated - keeping original session')
+      return
+    }
+    
+    // Remove the original session and add all generated sessions
+    setFormData(prev => ({
+      ...prev,
+      mealSessions: [
+        ...prev.mealSessions.filter(s => s.id !== sessionId),
+        ...generatedSessions
+      ]
+    }))
+  }
+  
+  // Toggle recurring functionality for a session
+  const toggleRecurring = (sessionId: string, isRecurring: boolean) => {
+    const session = formData.mealSessions.find(s => s.id === sessionId)
+    if (!session) return
+    
+    if (isRecurring) {
+      // Just update the session to mark it as recurring
+      setFormData(prev => ({
+        ...prev,
+        mealSessions: prev.mealSessions.map(s => 
+          s.id === sessionId ? {
+            ...s,
+            isRecurring: true,
+            recurringPattern: 'daily'
+          } : s
+        )
+      }))
+    } else {
+      // Disable recurring
+      setFormData(prev => ({
+        ...prev,
+        mealSessions: prev.mealSessions.map(s => 
+          s.id === sessionId ? {
+            ...s,
+            isRecurring: false,
+            recurringPattern: 'daily',
+            recurringDays: []
+          } : s
+        )
+      }))
+    }
+  }
+
+  // Update recurring pattern
+  const updateRecurringPattern = (sessionId: string, pattern: 'daily' | 'custom') => {
+    setFormData(prev => ({
+      ...prev,
+      mealSessions: prev.mealSessions.map(s => 
+        s.id === sessionId ? {
+          ...s,
+          recurringPattern: pattern,
+          recurringDays: pattern === 'daily' ? [] : s.recurringDays || []
+        } : s
+      )
+    }))
+  }
+
+  // Update recurring days for custom pattern
+  const updateRecurringDays = (sessionId: string, days: string[]) => {
+    setFormData(prev => ({
+      ...prev,
+      mealSessions: prev.mealSessions.map(s => 
+        s.id === sessionId ? {
+          ...s,
+          recurringDays: days
+        } : s
+      )
+    }))
   }
 
   // Get current validation errors for real-time feedback
@@ -240,11 +468,11 @@ export function MealSessionsStep({ formData, setFormData, errors, setErrors }: S
             <div className="text-sm text-blue-700">
               {isMultiDay ? (
                 <span>
-                  {startDate.toLocaleDateString()} - {endDate?.toLocaleDateString()}
+                  {formatDate(startDate)} - {endDate ? formatDate(endDate) : ''}
                   <span className="ml-2 text-blue-600 font-medium">(Multi-day event)</span>
                 </span>
               ) : (
-                <span>{startDate.toLocaleDateString()} <span className="ml-2 text-blue-600 font-medium">(Single day)</span></span>
+                <span>{formatDate(startDate)} <span className="ml-2 text-blue-600 font-medium">(Single day)</span></span>
               )}
             </div>
             <div className="text-xs text-blue-600 mt-1">
@@ -281,7 +509,7 @@ export function MealSessionsStep({ formData, setFormData, errors, setErrors }: S
               .sort(([dayA], [dayB]) => {
                 if (dayA === 'unscheduled') return 1
                 if (dayB === 'unscheduled') return -1
-                return new Date(dayA).getTime() - new Date(dayB).getTime()
+                return new Date(dayB).getTime() - new Date(dayA).getTime() // Descending order (latest first)
               })
               .map(([dayKey, sessions]) => (
                 <div key={dayKey} className="space-y-4">
@@ -292,7 +520,7 @@ export function MealSessionsStep({ formData, setFormData, errors, setErrors }: S
                       {dayKey === 'unscheduled' ? (
                         'Unscheduled Sessions'
                       ) : (
-                        <>Day {Math.floor((new Date(dayKey).getTime() - (startDate?.getTime() || 0)) / (24 * 60 * 60 * 1000)) + 1} - {new Date(dayKey).toLocaleDateString()}</>
+                        <>Day {Math.floor((new Date(dayKey).getTime() - (startDate?.getTime() || 0)) / (24 * 60 * 60 * 1000)) + 1} - {formatDate(new Date(dayKey))}</>
                       )}
                     </h3>
                     <span className="text-sm text-orange-600 bg-orange-100 px-2 py-1 rounded-full">
@@ -305,9 +533,18 @@ export function MealSessionsStep({ formData, setFormData, errors, setErrors }: S
                     {sessions.map((session, sessionIndex) => (
                       <div key={session.id} className="bg-white/80 border border-orange-200 rounded-xl p-4 space-y-4">
                         <div className="flex items-center justify-between">
-                          <h4 className="text-lg font-semibold text-orange-800">
-                            {session.name || `Session ${sessionIndex + 1}`}
-                          </h4>
+                          <div className="flex items-center gap-2">
+                            <h4 className="text-lg font-semibold text-orange-800">
+                              {session.name || `Session ${sessionIndex + 1}`}
+                            </h4>
+                            {/* Generated indicator */}
+                            {session.generatedFromRecurring && (
+                              <div className="flex items-center gap-1 bg-green-100 text-green-600 px-2 py-1 rounded-full text-xs">
+                                <Copy className="h-3 w-3" />
+                                Generated
+                              </div>
+                            )}
+                          </div>
                           <div className="flex items-center gap-2">
                             {/* Session validation status */}
                             {session.beginTime && session.endTime && (
@@ -360,6 +597,109 @@ export function MealSessionsStep({ formData, setFormData, errors, setErrors }: S
                               className="border-orange-200 focus:border-orange-500 bg-white"
                             />
                           </div>
+
+                          {/* Recurring Options - Only show for non-generated sessions */}
+                          {!session.generatedFromRecurring && isMultiDay && (
+                            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 space-y-3">
+                              <div className="flex items-center gap-2">
+                                <Repeat className="h-4 w-4 text-blue-600" />
+                                <Label className="text-sm font-medium text-blue-800">
+                                  Recurring Session
+                                </Label>
+                              </div>
+                              
+                              <div className="flex items-center space-x-2">
+                                <Checkbox
+                                  id={`recurring-${session.id}`}
+                                  checked={session.isRecurring || false}
+                                  onCheckedChange={(checked) => toggleRecurring(session.id, checked as boolean)}
+                                />
+                                <Label htmlFor={`recurring-${session.id}`} className="text-sm text-blue-700">
+                                  Repeat this session across multiple days
+                                </Label>
+                              </div>
+
+                              {session.isRecurring && (
+                                <div className="space-y-3 ml-6">
+                                  <div className="space-y-2">
+                                    <Label className="text-xs font-medium text-blue-700">
+                                      Recurring Pattern
+                                    </Label>
+                                    <Select
+                                      value={session.recurringPattern || 'daily'}
+                                      onValueChange={(value: 'daily' | 'custom') => updateRecurringPattern(session.id, value)}
+                                    >
+                                      <SelectTrigger className="w-full border-blue-200 focus:border-blue-500 bg-white text-sm">
+                                        <SelectValue />
+                                      </SelectTrigger>
+                                      <SelectContent>
+                                        <SelectItem value="daily">Every day</SelectItem>
+                                        <SelectItem value="custom">Custom days</SelectItem>
+                                      </SelectContent>
+                                    </Select>
+                                  </div>
+
+                                  {session.recurringPattern === 'custom' && (
+                                    <div className="space-y-2">
+                                      <Label className="text-xs font-medium text-blue-700">
+                                        Select Days
+                                      </Label>
+                                      <div className="grid grid-cols-2 gap-2">
+                                        {['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'].map(day => (
+                                          <div key={day} className="flex items-center space-x-2">
+                                            <Checkbox
+                                              id={`${session.id}-${day}`}
+                                              checked={session.recurringDays?.includes(day) || false}
+                                              onCheckedChange={(checked) => {
+                                                const currentDays = session.recurringDays || []
+                                                const newDays = checked 
+                                                  ? [...currentDays, day]
+                                                  : currentDays.filter(d => d !== day)
+                                                updateRecurringDays(session.id, newDays)
+                                              }}
+                                            />
+                                            <Label htmlFor={`${session.id}-${day}`} className="text-xs text-blue-600 capitalize">
+                                              {day}
+                                            </Label>
+                                          </div>
+                                        ))}
+                                      </div>
+                                    </div>
+                                  )}
+
+                                  {session.isRecurring && (
+                                    <div className="space-y-2">
+                                      <div className="text-xs text-blue-600 bg-blue-100 p-2 rounded">
+                                        <strong>Ready to generate:</strong> This will create individual meal sessions for {
+                                          session.recurringPattern === 'daily' 
+                                            ? 'all event days' 
+                                            : `selected days (${session.recurringDays?.length || 0} days)`
+                                        }.
+                                      </div>
+                                      
+                                      {session.name && session.beginTime && session.endTime && (
+                                        <Button
+                                          type="button"
+                                          onClick={() => generateRecurringSessionsForMeal(session.id)}
+                                          className="w-full bg-blue-600 hover:bg-blue-700 text-white text-sm py-2"
+                                          disabled={session.recurringPattern === 'custom' && (!session.recurringDays || session.recurringDays.length === 0)}
+                                        >
+                                          <Plus className="h-4 w-4 mr-2" />
+                                          Generate Recurring Sessions
+                                        </Button>
+                                      )}
+                                      
+                                      {(!session.name || !session.beginTime || !session.endTime) && (
+                                        <div className="text-xs text-amber-600 bg-amber-100 p-2 rounded">
+                                          Complete all required fields to generate sessions
+                                        </div>
+                                      )}
+                                    </div>
+                                  )}
+                                </div>
+                              )}
+                            </div>
+                          )}
                           
                           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div className="space-y-2">
@@ -374,7 +714,7 @@ export function MealSessionsStep({ formData, setFormData, errors, setErrors }: S
                                 min={startDate ? startDate.toISOString().slice(0, 16) : undefined}
                                 max={endDate ? new Date(endDate.getTime() + 24 * 60 * 60 * 1000 - 1).toISOString().slice(0, 16) : undefined}
                                 className="border-orange-200 focus:border-orange-500 bg-white"
-                              />
+                                />
                             </div>
                             <div className="space-y-2">
                               <Label className="text-sm font-medium text-gray-700 flex items-center gap-2">
@@ -388,7 +728,7 @@ export function MealSessionsStep({ formData, setFormData, errors, setErrors }: S
                                 min={session.beginTime || (startDate ? startDate.toISOString().slice(0, 16) : undefined)}
                                 max={endDate ? new Date(endDate.getTime() + 24 * 60 * 60 * 1000 - 1).toISOString().slice(0, 16) : undefined}
                                 className="border-orange-200 focus:border-orange-500 bg-white"
-                              />
+                                />
                             </div>
                           </div>
 
@@ -486,7 +826,16 @@ export function MealSessionsStep({ formData, setFormData, errors, setErrors }: S
           <div className="bg-white/80 border border-orange-200 rounded-xl p-4">
             <h4 className="font-semibold text-orange-800 mb-3">Meal Sessions Summary</h4>
             <div className="space-y-2">
-              {formData.mealSessions.map((session, index) => {
+              {formData.mealSessions
+                .slice() // Create a copy to avoid mutating original array
+                .sort((a, b) => {
+                  // Sort by begin time in descending order (latest first)
+                  if (!a.beginTime && !b.beginTime) return 0
+                  if (!a.beginTime) return 1
+                  if (!b.beginTime) return -1
+                  return new Date(b.beginTime).getTime() - new Date(a.beginTime).getTime()
+                })
+                .map((session, index) => {
                 const isComplete = session.name && session.beginTime && session.endTime
                 const hasValidTimes = session.beginTime && session.endTime && new Date(session.beginTime) < new Date(session.endTime)
                 const isOverlapping = hasSessionOverlap(session, formData.mealSessions)
@@ -503,7 +852,7 @@ export function MealSessionsStep({ formData, setFormData, errors, setErrors }: S
                           {new Date(session.beginTime).toLocaleString()} - {new Date(session.endTime).toLocaleString()}
                           {session.beginTime && (
                             <span className="ml-2 text-xs text-gray-500">
-                              ({new Date(session.beginTime).toLocaleDateString()})
+                              ({formatDate(new Date(session.beginTime))})
                             </span>
                           )}
                         </div>

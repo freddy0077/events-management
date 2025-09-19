@@ -11,9 +11,77 @@ import { StepProps } from './types'
 export function EventDetailsStep({ formData, setFormData, errors, setErrors }: StepProps) {
   const handleInputChange = (field: keyof typeof formData, value: any) => {
     setFormData(prev => ({ ...prev, [field]: value }))
+    
     // Clear error when user starts typing
     if (errors[field]) {
       setErrors(prev => ({ ...prev, [field]: '' }))
+    }
+    
+    // Validate date relationship when either date changes
+    if (field === 'date' || field === 'endDate') {
+      const newFormData = { ...formData, [field]: value }
+      
+      // Clear any existing date validation errors
+      setErrors(prev => ({ 
+        ...prev, 
+        endDate: prev.endDate?.includes('End date must be equal to or after the start date') ? '' : prev.endDate 
+      }))
+      
+      // Validate end date is not before start date
+      if (newFormData.date && newFormData.endDate) {
+        const startDate = new Date(newFormData.date)
+        const endDate = new Date(newFormData.endDate)
+        
+        if (endDate < startDate) {
+          setErrors(prev => ({ 
+            ...prev, 
+            endDate: 'End date must be equal to or after the start date' 
+          }))
+        }
+      }
+      
+      // Validate registration deadline when event start date changes
+      if (field === 'date' && newFormData.registrationDeadline) {
+        const regDeadline = new Date(newFormData.registrationDeadline)
+        const eventStart = new Date(newFormData.date)
+        
+        if (regDeadline >= eventStart) {
+          setErrors(prev => ({ 
+            ...prev, 
+            registrationDeadline: 'Registration deadline must be before event start date' 
+          }))
+        } else {
+          // Clear registration deadline error if it's now valid
+          setErrors(prev => ({ 
+            ...prev, 
+            registrationDeadline: prev.registrationDeadline?.includes('Registration deadline must be before event start date') ? '' : prev.registrationDeadline 
+          }))
+        }
+      }
+    }
+    
+    // Validate registration deadline when it changes
+    if (field === 'registrationDeadline') {
+      const newFormData = { ...formData, [field]: value }
+      
+      // Clear any existing registration deadline validation errors
+      setErrors(prev => ({ 
+        ...prev, 
+        registrationDeadline: prev.registrationDeadline?.includes('Registration deadline must be before event start date') ? '' : prev.registrationDeadline 
+      }))
+      
+      // Validate registration deadline is before event start date
+      if (newFormData.registrationDeadline && newFormData.date) {
+        const regDeadline = new Date(newFormData.registrationDeadline)
+        const eventStart = new Date(newFormData.date)
+        
+        if (regDeadline >= eventStart) {
+          setErrors(prev => ({ 
+            ...prev, 
+            registrationDeadline: 'Registration deadline must be before event start date' 
+          }))
+        }
+      }
     }
   }
 
@@ -97,8 +165,14 @@ export function EventDetailsStep({ formData, setFormData, errors, setErrors }: S
               type="datetime-local"
               value={formData.endDate}
               onChange={(e) => handleInputChange('endDate', e.target.value)}
-              className="border-blue-200 focus:border-blue-500 bg-white/80"
+              className={`${errors.endDate ? 'border-red-300 focus:border-red-500' : 'border-blue-200 focus:border-blue-500'} bg-white/80`}
             />
+            {errors.endDate && (
+              <div className="flex items-center gap-2 text-red-600 text-sm">
+                <AlertCircle className="h-4 w-4" />
+                {errors.endDate}
+              </div>
+            )}
           </div>
         </div>
 
@@ -169,8 +243,14 @@ export function EventDetailsStep({ formData, setFormData, errors, setErrors }: S
               type="datetime-local"
               value={formData.registrationDeadline}
               onChange={(e) => handleInputChange('registrationDeadline', e.target.value)}
-              className="border-blue-200 focus:border-blue-500 bg-white/80"
+              className={`${errors.registrationDeadline ? 'border-red-300 focus:border-red-500' : 'border-blue-200 focus:border-blue-500'} bg-white/80`}
             />
+            {errors.registrationDeadline && (
+              <div className="flex items-center gap-2 text-red-600 text-sm">
+                <AlertCircle className="h-4 w-4" />
+                {errors.registrationDeadline}
+              </div>
+            )}
           </div>
         </div>
 

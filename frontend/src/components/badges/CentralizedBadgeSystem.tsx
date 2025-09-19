@@ -241,11 +241,11 @@ export const CentralizedBadge = forwardRef<HTMLDivElement, CentralizedBadgeProps
         ? getTemplateColors(data.templateId) 
         : data.customStyling || getBadgeTypeColors(data.badgeType)
 
-    // Size configurations
+    // Size configurations - optimized for PDF printing
     const sizeConfig = {
-      small: { width: '3in', height: '4.5in', fontSize: '12px', qrSize: 60 },
-      medium: { width: '3.5in', height: '5.5in', fontSize: '14px', qrSize: 85 },
-      large: { width: '4in', height: '6in', fontSize: '16px', qrSize: 100 }
+      small: { width: '3in', height: '4.5in', fontSize: '12px', qrSize: 70 },
+      medium: { width: '3.5in', height: '5.5in', fontSize: '14px', qrSize: 80 },
+      large: { width: '4in', height: '6in', fontSize: '16px', qrSize: 90 }
     }
 
     const config = sizeConfig[size]
@@ -339,55 +339,80 @@ const ProfessionalBadgeVariant = forwardRef<HTMLDivElement, {
       justifyContent: 'space-between',
       backgroundColor: '#FAFAFA'
     }}>
-      {/* Name and QR Code Section */}
+      {/* Name Section */}
       <div style={{
-        display: 'flex',
-        alignItems: 'flex-start',
-        justifyContent: 'space-between',
-        marginBottom: '20px'
+        marginBottom: '24px'
       }}>
-        {/* Name Section */}
-        <div style={{ flex: 1, marginRight: showQR ? '20px' : '0' }}>
-          <div style={{
-            fontSize: `calc(${config.fontSize} * 2)`,
-            fontWeight: '700',
-            color: '#1A1A1A',
-            lineHeight: '1.2',
-            marginBottom: '8px'
-          }}>
-            {data.firstName}
-          </div>
-          <div style={{
-            fontSize: `calc(${config.fontSize} * 2)`,
-            fontWeight: '700',
-            color: '#1A1A1A',
-            lineHeight: '1.2',
-            marginBottom: '16px'
-          }}>
-            {data.lastName}
-          </div>
+        <div style={{
+          fontSize: `calc(${config.fontSize} * 2)`,
+          fontWeight: '700',
+          color: '#1A1A1A',
+          lineHeight: '1.2',
+          marginBottom: '8px'
+        }}>
+          {data.firstName}
         </div>
-        
-        {/* QR Code Section - Positioned beside name */}
-        {showQR && (
+        <div style={{
+          fontSize: `calc(${config.fontSize} * 2)`,
+          fontWeight: '700',
+          color: '#1A1A1A',
+          lineHeight: '1.2',
+          marginBottom: '16px'
+        }}>
+          {data.lastName}
+        </div>
+      </div>
+
+      {/* QR Code Section - Positioned below name to prevent overlap */}
+      {showQR && (
+        <div style={{
+          display: 'flex',
+          justifyContent: 'center',
+          marginBottom: '24px'
+        }}>
           <div style={{
             display: 'flex',
             flexDirection: 'column',
             alignItems: 'center',
             backgroundColor: 'white',
             borderRadius: '8px',
-            border: '1px solid #E0E0E0',
-            padding: '12px',
-            boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
+            padding: '16px',
+            boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+            minWidth: '120px'
           }}>
-            <QRCode
-              value={data.qrCodeData}
-              size={config.qrSize}
-              fgColor={colors.text}
-              bgColor="white"
-            />
             <div style={{
-              marginTop: '6px',
+              display: 'block',
+              lineHeight: 0,
+              overflow: 'hidden',
+              backgroundColor: 'white',
+              borderRadius: '4px'
+            }}>
+              <QRCode
+                value={data.qrCodeData}
+                size={config.qrSize}
+                fgColor={colors.text}
+                bgColor="white"
+                style={{
+                  display: 'block',
+                  height: 'auto',
+                  maxWidth: '100%',
+                  width: '100%'
+                }}
+                viewBox={`0 0 ${config.qrSize} ${config.qrSize}`}
+              />
+            </div>
+            <div style={{
+              marginTop: '8px',
+              fontSize: '10px',
+              color: '#666666',
+              textAlign: 'center',
+              letterSpacing: '0.5px',
+              fontWeight: '500'
+            }}>
+              SCAN TO CHECK-IN
+            </div>
+            <div style={{
+              marginTop: '4px',
               fontSize: '8px',
               color: '#888888',
               textAlign: 'center',
@@ -396,8 +421,8 @@ const ProfessionalBadgeVariant = forwardRef<HTMLDivElement, {
               ID: {data.registrationId}
             </div>
           </div>
-        )}
-      </div>
+        </div>
+      )}
 
       {/* Title & Company */}
       {(data.title || data.company) && (
@@ -480,7 +505,6 @@ const ProfessionalBadgeVariant = forwardRef<HTMLDivElement, {
     <div style={{
       backgroundColor: colors.primary,
       padding: '12px 24px',
-      borderTop: `2px solid ${colors.accent}`,
       display: 'flex',
       justifyContent: 'space-between',
       alignItems: 'center'
@@ -566,15 +590,29 @@ const MinimalBadgeVariant = forwardRef<HTMLDivElement, {
           alignItems: 'center',
           backgroundColor: '#F8F8F8',
           borderRadius: '6px',
-          border: '1px solid #E0E0E0',
           padding: '8px'
         }}>
-          <QRCode
-            value={data.qrCodeData}
-            size={Math.floor(config.qrSize * 0.85)}
-            fgColor={colors.text}
-            bgColor="white"
-          />
+          <div style={{
+            display: 'block',
+            lineHeight: 0,
+            overflow: 'hidden',
+            backgroundColor: 'white',
+            borderRadius: '4px'
+          }}>
+            <QRCode
+              value={data.qrCodeData}
+              size={Math.floor(config.qrSize * 0.85)}
+              fgColor={colors.text}
+              bgColor="white"
+              style={{
+                display: 'block',
+                height: 'auto',
+                maxWidth: '100%',
+                width: '100%'
+              }}
+              viewBox={`0 0 ${Math.floor(config.qrSize * 0.85)} ${Math.floor(config.qrSize * 0.85)}`}
+            />
+          </div>
           <div style={{
             marginTop: '4px',
             fontSize: '7px',
@@ -621,7 +659,6 @@ const MinimalBadgeVariant = forwardRef<HTMLDivElement, {
       color: '#888888',
       textAlign: 'center',
       paddingTop: '12px',
-      borderTop: '1px solid #F0F0F0',
       marginTop: 'auto'
     }}>
       {data.eventDate} • {data.eventVenue}
@@ -647,12 +684,12 @@ const CompactBadgeVariant = forwardRef<HTMLDivElement, {
       minHeight: `calc(${config.height} * 0.8)`,
       backgroundColor: 'white',
       borderRadius: '6px',
-      border: '1px solid #E0E0E0',
       padding: '16px',
       display: 'flex',
       flexDirection: 'column',
       fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
-      boxSizing: 'border-box'
+      boxSizing: 'border-box',
+      boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
     }}
   >
     {/* Header */}
@@ -696,12 +733,27 @@ const CompactBadgeVariant = forwardRef<HTMLDivElement, {
       
       {showQR && (
         <div style={{ marginLeft: '12px' }}>
-          <QRCode
-            value={data.qrCodeData}
-            size={Math.floor(config.qrSize * 0.6)}
-            fgColor={colors.text}
-            bgColor="white"
-          />
+          <div style={{
+            display: 'block',
+            lineHeight: 0,
+            overflow: 'hidden',
+            backgroundColor: 'white',
+            borderRadius: '4px'
+          }}>
+            <QRCode
+              value={data.qrCodeData}
+              size={Math.floor(config.qrSize * 0.6)}
+              fgColor={colors.text}
+              bgColor="white"
+              style={{
+                display: 'block',
+                height: 'auto',
+                maxWidth: '100%',
+                width: '100%'
+              }}
+              viewBox={`0 0 ${Math.floor(config.qrSize * 0.6)} ${Math.floor(config.qrSize * 0.6)}`}
+            />
+          </div>
         </div>
       )}
     </div>

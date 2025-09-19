@@ -120,9 +120,9 @@ export class QRCodeUtils {
               .qr-image {
                 width: 256px;
                 height: 256px;
-                border: 2px solid #e5e7eb;
                 border-radius: 8px;
                 margin: 0 auto 20px;
+                box-shadow: 0 2px 4px rgba(0,0,0,0.1);
               }
               .participant-name {
                 font-size: 18px;
