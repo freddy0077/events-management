@@ -101,13 +101,14 @@ export interface BadgeTemplateLayout {
     }
   }
   
-  // QR Code Section (positioned beside event name)
+  // QR Code Section (positioned beside event name or as separate section)
   qrSection: {
     position: 'beside-event' | 'separate-section'
     size: number
     frameColor: string
     frameWidth: number
     marginLeft: number
+    marginTop?: number // For separate-section positioning
     instruction: {
       marginTop: number
       fontSize: number
@@ -245,14 +246,15 @@ export const professionalTemplate: BadgeTemplateLayout = {
   },
   
   qrSection: {
-    position: 'beside-event',
-    size: 52,      // Reduced from 60 to fit A6 width better
+    position: 'separate-section',
+    size: 60,      // Increased back to 60 for better visibility in separate section
     frameColor: '#1e293b', // Will be overridden by template colors
     frameWidth: 2,
-    marginLeft: 12, // Reduced from 15 to optimize spacing
+    marginLeft: 0,  // No margin needed for separate section
+    marginTop: 16,  // Add margin for separate section positioning
     instruction: {
-      marginTop: 4,  // Reduced from 5 to optimize spacing
-      fontSize: 6,   // Reduced from 7 for better fit
+      marginTop: 6,  // Increased for better spacing in separate section
+      fontSize: 7,   // Increased back to 7 for better readability
       fontWeight: 'bold',
       color: '#64748b',
       text: 'SCAN TO CHECK-IN',
@@ -270,14 +272,14 @@ export const professionalTemplate: BadgeTemplateLayout = {
     instruction: {
       fontSize: 6,   // Reduced from 7 for better fit
       color: '#64748b',
-      text: 'Present this badge for event entry and services',
+      text: '',
       align: 'center'
     },
     branding: {
       marginTop: 10, // Reduced from 12 to optimize spacing
       fontSize: 5,   // Reduced from 6 for better fit
       color: '#94a3b8',
-      text: 'Powered by EventReg Professional',
+      text: '',
       align: 'center'
     }
   },

@@ -417,48 +417,17 @@ export class BadgeService {
          });
     }
 
-    // EVENT SECTION - Using template structure with QR code beside event name
+    // EVENT SECTION - Using template structure
     const eventSectionY = headerY + styledLayout.header.height + styledLayout.eventSection.marginTop;
     
-    // Calculate space for QR code if positioned beside event
-    const qrBesideEvent = styledLayout.qrSection.position === 'beside-event' && qrCodeResult?.base64Image;
-    const qrSpaceWidth = qrBesideEvent ? styledLayout.qrSection.size + styledLayout.qrSection.marginLeft + 10 : 0;
-    const eventTextWidth = headerWidth - qrSpaceWidth;
-    
-    // Event name - Using template styling with space for QR code
+    // Event name - Full width since QR is now in separate section
     doc.fontSize(styledLayout.eventSection.eventName.fontSize)
        .font(getPDFFont(styledLayout.eventSection.eventName.fontWeight))
        .fillColor(styledLayout.eventSection.eventName.color)
        .text(badgeData.eventName, headerX, eventSectionY, { 
-         width: eventTextWidth,
+         width: headerWidth,
          align: getPDFAlignment(styledLayout.eventSection.eventName.align)
        });
-
-    // QR CODE beside event name - Using template structure
-    if (qrBesideEvent) {
-      const qrX = headerX + eventTextWidth + styledLayout.qrSection.marginLeft;
-      const qrY = eventSectionY - 5; // Align with event name
-      const qrSize = styledLayout.qrSection.size;
-
-      // QR frame using template styling
-      doc.roundedRect(qrX - 5, qrY - 5, qrSize + 10, qrSize + 10, 5)
-         .fill('#ffffff')
-         .stroke(styledLayout.qrSection.frameColor)
-         .lineWidth(styledLayout.qrSection.frameWidth);
-
-      // QR Code
-      const qrBuffer = Buffer.from(qrCodeResult.base64Image.split(',')[1], 'base64');
-      doc.image(qrBuffer, qrX, qrY, { width: qrSize, height: qrSize });
-
-      // QR instruction - Below QR code
-      doc.fontSize(styledLayout.qrSection.instruction.fontSize)
-         .font(getPDFFont(styledLayout.qrSection.instruction.fontWeight))
-         .fillColor(styledLayout.qrSection.instruction.color)
-         .text(styledLayout.qrSection.instruction.text, qrX - 5, qrY + qrSize + styledLayout.qrSection.instruction.marginTop, { 
-           width: qrSize + 10, 
-           align: getPDFAlignment(styledLayout.qrSection.instruction.align)
-         });
-    }
 
     // Professional separator line using template styling
     const separatorY = eventSectionY + styledLayout.eventSection.separator.marginTop;
@@ -537,7 +506,31 @@ export class BadgeService {
        .fillColor(styledLayout.participantSection.categoryBadge.color)
        .text(categoryText, categoryBadgeX + styledLayout.participantSection.categoryBadge.padding, categoryBadgeY + 4);
 
-    // QR CODE is now positioned beside the event name (handled above)
+    // QR CODE SECTION - Positioned as separate section below participant info
+    if (qrCodeResult?.base64Image && styledLayout.qrSection.position === 'separate-section') {
+      const qrSectionY = categoryBadgeY + 20 + (styledLayout.qrSection.marginTop || 16);
+      const qrSize = styledLayout.qrSection.size;
+      const qrX = headerX + (headerWidth - qrSize) / 2; // Center the QR code
+
+      // QR frame using template styling
+      doc.roundedRect(qrX - 8, qrSectionY - 8, qrSize + 16, qrSize + 16, 8)
+         .fill('#ffffff')
+         .stroke(styledLayout.qrSection.frameColor)
+         .lineWidth(styledLayout.qrSection.frameWidth);
+
+      // QR Code
+      const qrBuffer = Buffer.from(qrCodeResult.base64Image.split(',')[1], 'base64');
+      doc.image(qrBuffer, qrX, qrSectionY, { width: qrSize, height: qrSize });
+
+      // QR instruction - Below QR code
+      doc.fontSize(styledLayout.qrSection.instruction.fontSize)
+         .font(getPDFFont(styledLayout.qrSection.instruction.fontWeight))
+         .fillColor(styledLayout.qrSection.instruction.color)
+         .text(styledLayout.qrSection.instruction.text, headerX, qrSectionY + qrSize + styledLayout.qrSection.instruction.marginTop, { 
+           width: headerWidth, 
+           align: getPDFAlignment(styledLayout.qrSection.instruction.align)
+         });
+    }
 
     // FOOTER - Using template structure
     const footerY = y + height - styledLayout.dimensions.margin - 30;
