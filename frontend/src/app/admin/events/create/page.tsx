@@ -279,7 +279,10 @@ export default function CreateEventPage() {
       if (formData.registrationDeadline && formData.date) {
         const regDeadline = new Date(formData.registrationDeadline)
         const eventStart = new Date(formData.date)
-        if (regDeadline >= eventStart) {
+        const eventEnd = formData.endDate ? new Date(formData.endDate) : eventStart
+        
+        // Registration deadline must not be after event end date
+        if (regDeadline > eventEnd) {
           return true
         }
       }
@@ -359,13 +362,15 @@ export default function CreateEventPage() {
           }
         }
         
-        // Validate registration deadline is before event start date
+        // Validate registration deadline is within event date range
         if (formData.registrationDeadline && formData.date) {
           const regDeadline = new Date(formData.registrationDeadline)
           const eventStart = new Date(formData.date)
+          const eventEnd = formData.endDate ? new Date(formData.endDate) : eventStart
           
-          if (regDeadline >= eventStart) {
-            newErrors.registrationDeadline = 'Registration deadline must be before event start date'
+          // Registration deadline must not be after event end date
+          if (regDeadline > eventEnd) {
+            newErrors.registrationDeadline = 'Registration deadline must not be after event end date'
           }
         }
         break

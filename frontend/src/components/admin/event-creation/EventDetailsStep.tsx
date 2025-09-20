@@ -40,21 +40,23 @@ export function EventDetailsStep({ formData, setFormData, errors, setErrors }: S
         }
       }
       
-      // Validate registration deadline when event start date changes
-      if (field === 'date' && newFormData.registrationDeadline) {
+      // Validate registration deadline when event dates change
+      if ((field === 'date' || field === 'endDate') && newFormData.registrationDeadline) {
         const regDeadline = new Date(newFormData.registrationDeadline)
         const eventStart = new Date(newFormData.date)
+        const eventEnd = newFormData.endDate ? new Date(newFormData.endDate) : eventStart
         
-        if (regDeadline >= eventStart) {
+        // Registration deadline must be between event start and end dates (inclusive)
+        if (regDeadline > eventEnd) {
           setErrors(prev => ({ 
             ...prev, 
-            registrationDeadline: 'Registration deadline must be before event start date' 
+            registrationDeadline: 'Registration deadline must not be after event end date' 
           }))
         } else {
           // Clear registration deadline error if it's now valid
           setErrors(prev => ({ 
             ...prev, 
-            registrationDeadline: prev.registrationDeadline?.includes('Registration deadline must be before event start date') ? '' : prev.registrationDeadline 
+            registrationDeadline: prev.registrationDeadline?.includes('Registration deadline must') ? '' : prev.registrationDeadline 
           }))
         }
       }
@@ -67,18 +69,20 @@ export function EventDetailsStep({ formData, setFormData, errors, setErrors }: S
       // Clear any existing registration deadline validation errors
       setErrors(prev => ({ 
         ...prev, 
-        registrationDeadline: prev.registrationDeadline?.includes('Registration deadline must be before event start date') ? '' : prev.registrationDeadline 
+        registrationDeadline: prev.registrationDeadline?.includes('Registration deadline must') ? '' : prev.registrationDeadline 
       }))
       
-      // Validate registration deadline is before event start date
+      // Validate registration deadline is within event date range
       if (newFormData.registrationDeadline && newFormData.date) {
         const regDeadline = new Date(newFormData.registrationDeadline)
         const eventStart = new Date(newFormData.date)
+        const eventEnd = newFormData.endDate ? new Date(newFormData.endDate) : eventStart
         
-        if (regDeadline >= eventStart) {
+        // Registration deadline must be between event start and end dates (inclusive)
+        if (regDeadline > eventEnd) {
           setErrors(prev => ({ 
             ...prev, 
-            registrationDeadline: 'Registration deadline must be before event start date' 
+            registrationDeadline: 'Registration deadline must not be after event end date' 
           }))
         }
       }
@@ -243,8 +247,13 @@ export function EventDetailsStep({ formData, setFormData, errors, setErrors }: S
               type="datetime-local"
               value={formData.registrationDeadline}
               onChange={(e) => handleInputChange('registrationDeadline', e.target.value)}
+              min={formData.date || undefined}
+              max={formData.endDate || formData.date || undefined}
               className={`${errors.registrationDeadline ? 'border-red-300 focus:border-red-500' : 'border-blue-200 focus:border-blue-500'} bg-white/80`}
             />
+            <p className="text-xs text-blue-600">
+              Can be set anytime between event start and end date (flexible for multi-day events)
+            </p>
             {errors.registrationDeadline && (
               <div className="flex items-center gap-2 text-red-600 text-sm">
                 <AlertCircle className="h-4 w-4" />
@@ -264,7 +273,8 @@ export function EventDetailsStep({ formData, setFormData, errors, setErrors }: S
               <h4 className="font-semibold text-blue-800 mb-1">Event Planning Tips</h4>
               <ul className="text-sm text-blue-700 space-y-1">
                 <li>• Choose a memorable and descriptive event name</li>
-                <li>• Set registration deadline at least 1 week before event</li>
+                <li>• Registration deadline can be flexible - set anytime between event start and end</li>
+                <li>• For multi-day events, you can allow registration during the event period</li>
                 <li>• Consider venue capacity when setting max capacity</li>
                 <li>• Include detailed address for better accessibility</li>
               </ul>

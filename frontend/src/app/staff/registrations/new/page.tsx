@@ -190,7 +190,40 @@ export default function POSRegistrationPage() {
   }
 
   const canCompleteRegistration = () => {
-    return canProceedToPayment() && formData.paymentMethod && formData.receiptNumber
+    return canProceedToPayment() && formData.paymentMethod && formData.receiptNumber && !isRegistrationDeadlinePassed()
+  }
+
+  const isRegistrationDeadlinePassed = () => {
+    if (!selectedEvent?.registrationDeadline) return false
+    
+    const now = new Date()
+    const deadline = new Date(selectedEvent.registrationDeadline)
+    return now > deadline
+  }
+
+  const getDeadlineWarning = () => {
+    if (!selectedEvent?.registrationDeadline) return null
+    
+    const now = new Date()
+    const deadline = new Date(selectedEvent.registrationDeadline)
+    
+    if (now > deadline) {
+      return {
+        type: 'error' as const,
+        message: `Registration deadline has passed (${deadline.toLocaleDateString()})`
+      }
+    }
+    
+    // Show warning if deadline is within 24 hours
+    const hoursUntilDeadline = (deadline.getTime() - now.getTime()) / (1000 * 60 * 60)
+    if (hoursUntilDeadline <= 24 && hoursUntilDeadline > 0) {
+      return {
+        type: 'warning' as const,
+        message: `Registration deadline is soon: ${deadline.toLocaleDateString()} at ${deadline.toLocaleTimeString()}`
+      }
+    }
+    
+    return null
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -199,6 +232,12 @@ export default function POSRegistrationPage() {
     if (!formData.eventId || !formData.categoryId || !formData.fullName || 
         !formData.email || !formData.phone || !formData.address || !formData.receiptNumber) {
       toast.error('Please fill in all required fields')
+      return
+    }
+
+    // Check registration deadline
+    if (isRegistrationDeadlinePassed()) {
+      toast.error('Cannot register participant - registration deadline has passed')
       return
     }
 
@@ -316,6 +355,16 @@ export default function POSRegistrationPage() {
                 <Badge className="text-base px-4 py-2 bg-orange-600 text-white font-bold shadow-md">
                   {selectedEvent.name}
                 </Badge>
+                {getDeadlineWarning() && (
+                  <Badge className={`text-sm px-3 py-2 font-semibold shadow-md flex items-center gap-2 ${
+                    getDeadlineWarning()?.type === 'error' 
+                      ? 'bg-red-600 text-white' 
+                      : 'bg-yellow-600 text-white'
+                  }`}>
+                    <AlertCircle className="h-4 w-4" />
+                    {getDeadlineWarning()?.message}
+                  </Badge>
+                )}
                 {selectedBadgeTemplate && (
                   <Badge className="text-sm px-3 py-2 bg-purple-600 text-white font-semibold shadow-md flex items-center gap-2">
                     <span className="text-lg">{selectedBadgeTemplate.preview}</span>
@@ -636,6 +685,30 @@ export default function POSRegistrationPage() {
                     <div className="p-4 bg-gradient-to-r from-purple-100 to-purple-200 rounded-xl border-2 border-purple-300 shadow-md">
                       <div className="text-base font-black text-purple-700 uppercase tracking-wide">Receipt Number</div>
                       <div className="font-mono font-black text-lg text-slate-900">{formData.receiptNumber}</div>
+                    </div>
+                  )}
+
+                  {/* Registration Deadline Warning */}
+                  {getDeadlineWarning() && (
+                    <div className={`p-4 rounded-xl border-2 shadow-md ${
+                      getDeadlineWarning()?.type === 'error' 
+                        ? 'bg-gradient-to-r from-red-100 to-red-200 border-red-300' 
+                        : 'bg-gradient-to-r from-yellow-100 to-yellow-200 border-yellow-300'
+                    }`}>
+                      <div className={`text-base font-black uppercase tracking-wide flex items-center gap-2 ${
+                        getDeadlineWarning()?.type === 'error' ? 'text-red-700' : 'text-yellow-700'
+                      }`}>
+                        <AlertCircle className="h-5 w-5" />
+                        {getDeadlineWarning()?.type === 'error' ? 'DEADLINE PASSED' : 'DEADLINE WARNING'}
+                      </div>
+                      <div className="font-bold text-lg text-slate-900 mt-1">
+                        {getDeadlineWarning()?.message}
+                      </div>
+                      {getDeadlineWarning()?.type === 'error' && (
+                        <div className="text-sm text-red-600 mt-2 font-semibold">
+                          Registration is not allowed after the deadline has passed.
+                        </div>
+                      )}
                     </div>
                   )}
 
