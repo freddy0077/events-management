@@ -9,7 +9,6 @@ import {
   Users, 
   CreditCard, 
   QrCode, 
-  Badge,
   BarChart3,
   Home,
   Menu,
@@ -96,12 +95,6 @@ export default function StaffLayout({ children }: StaffLayoutProps) {
       href: '/staff/scanner',
       icon: QrCode,
       description: 'Scan participant QR codes'
-    },
-    {
-      name: 'Badge Printing',
-      href: '/staff/badges',
-      icon: Badge,
-      description: 'Print participant badges'
     },
     {
       name: 'Reports',

@@ -59,6 +59,9 @@ export class Event {
   @Field({ nullable: true })
   badgeTemplateId?: string;
 
+  @Field({ nullable: true })
+  logoUrl?: string;
+
   @Field()
   isActive: boolean;
 

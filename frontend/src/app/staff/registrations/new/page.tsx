@@ -42,6 +42,7 @@ interface RegistrationFormData {
   email: string
   phone: string
   address: string
+  zone: string
   receiptNumber: string
   paymentMethod: 'CASH' | 'CARD' | 'BANK_TRANSFER' | 'MOBILE_MONEY'
   notes?: string
@@ -56,6 +57,7 @@ export default function POSRegistrationPage() {
     email: '',
     phone: '',
     address: '',
+    zone: '',
     receiptNumber: '',
     paymentMethod: 'CASH',
     notes: ''
@@ -230,7 +232,7 @@ export default function POSRegistrationPage() {
     e.preventDefault()
     
     if (!formData.eventId || !formData.categoryId || !formData.fullName || 
-        !formData.email || !formData.phone || !formData.address || !formData.receiptNumber) {
+        !formData.email || !formData.phone || !formData.address || !formData.zone || !formData.receiptNumber) {
       toast.error('Please fill in all required fields')
       return
     }
@@ -253,6 +255,7 @@ export default function POSRegistrationPage() {
             email: formData.email,
             phone: formData.phone,
             address: formData.address,
+            zone: formData.zone,
             receiptNumber: formData.receiptNumber,
             specialRequests: formData.notes,
             paymentMethod: formData.paymentMethod
@@ -263,26 +266,6 @@ export default function POSRegistrationPage() {
       if ((result.data as any)?.createStaffRegistration?.registration) {
         const registration = (result.data as any).createStaffRegistration.registration
         toast.success('Registration created successfully!')
-        
-        // Automatically convert badge to PDF after successful registration
-        try {
-          console.log('=== Badge Generation Debug ===')
-          console.log('Registration ID:', registration.id)
-          console.log('Event Name:', selectedEvent?.name)
-          console.log('Badge Template ID:', selectedEvent?.badgeTemplateId)
-          console.log('Selected Event Object:', selectedEvent)
-          
-          await generateAndConvertToPDF(
-            registration.id, 
-            formData.fullName, 
-            selectedEvent?.name || 'Event',
-            selectedEvent?.badgeTemplateId // Pass the event's badge template ID
-          )
-          toast.success('Badge converted to PDF successfully!')
-        } catch (badgeError: any) {
-          console.error('Badge PDF conversion error:', badgeError)
-          toast.warning('Registration created but badge PDF conversion failed. You can generate it manually from the registrations page.')
-        }
         
         router.push('/staff/registrations')
       }
@@ -470,15 +453,35 @@ export default function POSRegistrationPage() {
                   </div>
 
                   <div className="space-y-3">
-                    <Label htmlFor="address" className="text-base font-bold text-slate-900">Address *</Label>
+                    <Label htmlFor="address" className="text-base font-bold text-slate-900">Place of Work *</Label>
                     <Input
                       id="address"
                       value={formData.address}
                       onChange={(e) => handleInputChange('address', e.target.value)}
-                      placeholder="Enter address"
+                      placeholder="Enter place of work"
                       className="h-16 text-lg border-2 border-slate-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 shadow-md bg-white"
-                      autoComplete="address-line1"
+                      autoComplete="organization"
                     />
+                  </div>
+
+                  <div className="space-y-3">
+                    <Label htmlFor="zone" className="text-base font-bold text-slate-900">Zone *</Label>
+                    <select
+                      id="zone"
+                      value={formData.zone}
+                      onChange={(e) => handleInputChange('zone', e.target.value)}
+                      className="w-full h-16 text-lg border-2 border-slate-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 shadow-md bg-white rounded-md px-4"
+                    >
+                      <option value="">Select Zone</option>
+                      <option value="Greater Accra zone">Greater Accra zone</option>
+                      <option value="Central zone">Central zone</option>
+                      <option value="Western zone">Western zone</option>
+                      <option value="Eastern zone">Eastern zone</option>
+                      <option value="BA zone">BA zone</option>
+                      <option value="Ashanti zone">Ashanti zone</option>
+                      <option value="Savanna zone">Savanna zone</option>
+                      <option value="Voltage zone">Voltage zone</option>
+                    </select>
                   </div>
                 </div>
               </CardContent>

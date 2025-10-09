@@ -121,6 +121,11 @@ export class CreateEventInput {
   @IsString()
   badgeTemplateId?: string;
 
+  @Field({ nullable: true })
+  @IsOptional()
+  @IsString()
+  logoUrl?: string;
+
   @Field(() => [CreateCategoryInput])
   @IsArray()
   @ValidateNested({ each: true })

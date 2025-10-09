@@ -118,18 +118,42 @@ export class StaffPermissionGuard implements CanActivate {
           StaffPermission.VIEW_REPORTS,
           StaffPermission.SCAN_QR_CODES,
           StaffPermission.EXPORT_DATA,
+          StaffPermission.PRINT_BADGES,
+          StaffPermission.MANAGE_BADGES,
         ];
+      case 'MANAGER':
+        return [
+          StaffPermission.CREATE_REGISTRATION,
+          StaffPermission.VIEW_REPORTS,
+          StaffPermission.SCAN_QR_CODES,
+          StaffPermission.EXPORT_DATA,
+          StaffPermission.MANAGE_STAFF,
+          StaffPermission.PRINT_BADGES,
+          StaffPermission.MANAGE_BADGES,
+        ];
+      case 'SUPERVISOR':
       case 'COORDINATOR':
         return [
           StaffPermission.CREATE_REGISTRATION,
           StaffPermission.VIEW_REPORTS,
           StaffPermission.SCAN_QR_CODES,
           StaffPermission.EXPORT_DATA,
+          StaffPermission.PRINT_BADGES,
+          StaffPermission.MANAGE_BADGES,
         ];
       case 'STAFF':
         return [
           StaffPermission.CREATE_REGISTRATION,
           StaffPermission.SCAN_QR_CODES,
+        ];
+      case 'REGISTRATION_ONLY':
+        return [
+          StaffPermission.CREATE_REGISTRATION,
+        ];
+      case 'BADGE_PRINTER':
+        return [
+          StaffPermission.PRINT_BADGES,
+          StaffPermission.MANAGE_BADGES,
         ];
       default:
         return [];

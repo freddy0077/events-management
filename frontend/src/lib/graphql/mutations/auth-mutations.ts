@@ -12,6 +12,7 @@ export const LOGIN = gql`
         firstName
         lastName
         role
+        eventRole
         mustChangePassword
       }
     }
@@ -62,6 +63,7 @@ export const REFRESH_TOKEN = gql`
         firstName
         lastName
         role
+        eventRole
         mustChangePassword
       }
     }

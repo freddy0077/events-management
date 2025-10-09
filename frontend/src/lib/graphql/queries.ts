@@ -140,8 +140,12 @@ export const GET_EVENT_REGISTRATIONS = gql`
       email
       phone
       address
+      zone
       paymentStatus
       qrCode
+      badgePrinted
+      badgePrintedAt
+      badgePrintCount
       checkedIn
       checkedInAt
       createdAt
@@ -179,8 +183,12 @@ export const GET_MY_EVENT_REGISTRATIONS = gql`
       email
       phone
       address
+      zone
       paymentStatus
       qrCode
+      badgePrinted
+      badgePrintedAt
+      badgePrintCount
       checkedIn
       checkedInAt
       createdAt
@@ -188,6 +196,51 @@ export const GET_MY_EVENT_REGISTRATIONS = gql`
         id
         name
         slug
+      }
+      category {
+        id
+        name
+        price
+      }
+      transactions {
+        id
+        amount
+        paymentMethod
+        paymentStatus
+        receiptNumber
+        paymentDate
+        createdAt
+      }
+    }
+  }
+`
+
+// Search registrations
+export const SEARCH_REGISTRATIONS = gql`
+  query SearchRegistrations($searchTerm: String!, $eventId: ID) {
+    searchRegistrations(searchTerm: $searchTerm, eventId: $eventId) {
+      id
+      firstName
+      lastName
+      fullName
+      email
+      phone
+      address
+      zone
+      paymentStatus
+      qrCode
+      badgePrinted
+      badgePrintedAt
+      badgePrintCount
+      checkedIn
+      checkedInAt
+      createdAt
+      event {
+        id
+        name
+        slug
+        date
+        venue
       }
       category {
         id
@@ -245,6 +298,7 @@ export const GET_EVENTS = gql`
       venue
       description
       maxCapacity
+      logoUrl
       isActive
       status
       totalRegistrations
@@ -276,6 +330,7 @@ export const GET_EVENT_BY_ID = gql`
       address
       description
       maxCapacity
+      logoUrl
       paymentRequired
       registrationDeadline
       paymentDeadline
@@ -357,6 +412,7 @@ export const GET_EVENT_BY_SLUG = gql`
       venue
       address
       maxCapacity
+      logoUrl
       paymentRequired
       registrationDeadline
       paymentDeadline

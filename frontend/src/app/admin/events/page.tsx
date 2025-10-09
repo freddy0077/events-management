@@ -46,7 +46,8 @@ import {
   Building2,
   CalendarDays,
   FileText,
-  QrCode
+  QrCode,
+  Image as ImageIcon
 } from 'lucide-react'
 import {
   SparklesIcon,
@@ -72,6 +73,7 @@ interface Event {
   venue: string
   description?: string
   maxCapacity: number
+  logoUrl?: string
   isActive: boolean
   status: 'DRAFT' | 'ACTIVE' | 'COMPLETED' | 'CANCELLED'
   totalRegistrations: number
@@ -533,6 +535,21 @@ export default function AdminEventsPage() {
                             onCheckedChange={(checked) => handleSelectEvent(event.id, checked as boolean)}
                             className="mt-1"
                           />
+
+                          {/* Event Logo */}
+                          <div className="flex-shrink-0">
+                            {event.logoUrl ? (
+                              <img
+                                src={event.logoUrl}
+                                alt={`${event.name} logo`}
+                                className="w-16 h-16 rounded-lg object-cover border-2 border-gray-200"
+                              />
+                            ) : (
+                              <div className="w-16 h-16 rounded-lg bg-gradient-to-br from-indigo-100 to-purple-100 flex items-center justify-center border-2 border-gray-200">
+                                <ImageIcon className="h-8 w-8 text-indigo-400" />
+                              </div>
+                            )}
+                          </div>
 
                           {/* Event Info */}
                           <div className="flex-1 min-w-0">

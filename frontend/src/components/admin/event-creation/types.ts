@@ -28,6 +28,7 @@ export interface EventFormData {
   address: string
   maxCapacity: number
   registrationDeadline: string
+  logoUrl?: string
   // Categories
   categories: EventCategory[]
   // Meal Sessions

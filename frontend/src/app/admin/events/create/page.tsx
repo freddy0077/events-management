@@ -505,13 +505,15 @@ export default function CreateEventPage() {
         }
       }
 
-      // Validate registration deadline is before event start date
+      // Validate registration deadline is within event date range
       if (formData.registrationDeadline && formData.date) {
         const regDeadline = new Date(formData.registrationDeadline)
         const eventStart = new Date(formData.date)
+        const eventEnd = formData.endDate ? new Date(formData.endDate) : eventStart
         
-        if (regDeadline >= eventStart) {
-          toast.error('Registration deadline must be before event start date')
+        // Registration deadline must not be after event end date
+        if (regDeadline > eventEnd) {
+          toast.error('Registration deadline must not be after event end date')
           setCurrentStep(1) // Go back to event details step
           return
         }
@@ -580,6 +582,7 @@ export default function CreateEventPage() {
         latePaymentFee: formData.latePaymentFee || undefined,
         refundPolicy: formData.refundPolicy as 'full' | 'partial' | 'deposit' | 'none',
         badgeTemplateId: formData.badgeTemplateId,
+        logoUrl: formData.logoUrl || undefined,
         categories: formData.categories.map(cat => ({
           name: cat.name,
           price: cat.price,

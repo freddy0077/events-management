@@ -33,6 +33,9 @@ export class UserPayload {
 
   @Field({ nullable: true })
   mustChangePassword?: boolean;
+
+  @Field({ nullable: true })
+  eventRole?: string;
 }
 
 @ObjectType()

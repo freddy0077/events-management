@@ -34,6 +34,17 @@ export class AuthService {
       throw new UnauthorizedException('Invalid credentials');
     }
 
+    // Check if user has any event staff assignments to determine their primary role
+    const eventStaffAssignment = await this.prisma.eventStaff.findFirst({
+      where: {
+        userId: user.id,
+        isActive: true,
+      },
+      orderBy: {
+        assignedAt: 'desc', // Get most recent assignment
+      },
+    });
+
     // Generate JWT token
     const payload = {
       sub: user.id,
@@ -52,6 +63,7 @@ export class AuthService {
         firstName: user.firstName,
         lastName: user.lastName,
         mustChangePassword: user.mustChangePassword,
+        eventRole: eventStaffAssignment?.role || null, // Include event staff role
       },
     };
   }
@@ -65,6 +77,17 @@ export class AuthService {
       throw new UnauthorizedException('User not found or inactive');
     }
 
+    // Check if user has any event staff assignments
+    const eventStaffAssignment = await this.prisma.eventStaff.findFirst({
+      where: {
+        userId: user.id,
+        isActive: true,
+      },
+      orderBy: {
+        assignedAt: 'desc',
+      },
+    });
+
     return {
       id: user.id,
       email: user.email,
@@ -72,6 +95,7 @@ export class AuthService {
       firstName: user.firstName,
       lastName: user.lastName,
       mustChangePassword: user.mustChangePassword,
+      eventRole: eventStaffAssignment?.role || null,
     };
   }
 

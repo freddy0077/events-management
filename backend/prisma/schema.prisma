@@ -53,6 +53,7 @@ model Event {
   latePaymentFee        Decimal? @db.Decimal(10, 2)
   refundPolicy          String?
   badgeTemplateId       String?  // Badge template selection for event
+  logoUrl               String?  // Event logo for badges and materials
   isActive              Boolean  @default(true)
   
   // Event creator (organizer)
@@ -117,10 +118,15 @@ model Registration {
   fullName            String
   email               String
   phone               String
-  address             String
+  address             String   // Now represents "Place of Work"
+  zone                String?  // Zone selection
   qrCode              String?  @unique
   qrCodeData          Json?
   qrCodeGeneratedAt   DateTime?
+  badgePrinted        Boolean  @default(false)
+  badgePrintedAt      DateTime?
+  badgePrintedBy      String?  // Staff member who printed the badge
+  badgePrintCount     Int      @default(0)  // Track how many times badge was printed
   checkedIn           Boolean  @default(false)
   checkedInAt         DateTime?
   mealServed          Boolean  @default(false)
@@ -273,8 +279,10 @@ enum Role {
 }
 
 enum EventStaffRole {
-  STAFF           // Basic staff member - can register participants, scan QR codes
-  SUPERVISOR      // Can manage other staff, view reports
-  MANAGER         // Can modify event settings, manage all aspects
-  ORGANIZER       // Full control over the event (usually the creator)
+  STAFF              // Basic staff member - can register participants, scan QR codes
+  REGISTRATION_ONLY  // Can register participants only (no badge printing)
+  BADGE_PRINTER      // Can print and manage badges only (no registration)
+  SUPERVISOR         // Can manage other staff, view reports
+  MANAGER            // Can modify event settings, manage all aspects
+  ORGANIZER          // Full control over the event (usually the creator)
 }

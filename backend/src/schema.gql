@@ -160,6 +160,7 @@ input CreateEventInput {
   endDate: String
   fullPaymentDeadline: String
   latePaymentFee: Float
+  logoUrl: String
   maxCapacity: Int
   meals: [CreateEventMealInput!]
   name: String!
@@ -204,6 +205,7 @@ input CreateStaffRegistrationInput {
   phone: String
   receiptNumber: String
   specialRequests: String
+  zone: String
 }
 
 input CreateStandaloneCategoryInput {
@@ -285,6 +287,7 @@ type Event {
   id: ID!
   isActive: Boolean!
   latePaymentFee: Float
+  logoUrl: String
   maxCapacity: Int
   meals: [Meal!]
   name: String!
@@ -334,8 +337,10 @@ type EventStaffList {
 
 """The role of a staff member in an event"""
 enum EventStaffRole {
+  BADGE_PRINTER
   MANAGER
   ORGANIZER
+  REGISTRATION_ONLY
   STAFF
   SUPERVISOR
 }
@@ -587,6 +592,7 @@ type Query {
   registrationByQRCode(qrCode: String!): Registration!
   registrations(eventId: String, eventIds: [String!], limit: Int, offset: Int): [Registration!]!
   searchRegistrationByReceipt(receiptNumber: String!): Registration
+  searchRegistrations(eventId: ID, searchTerm: String!): [Registration!]!
   validateQRCode(qrCode: String!): QRCodeValidationResult!
 }
 
@@ -613,6 +619,10 @@ type RegisterUserPayload {
 
 type Registration {
   address: String!
+  badgePrintCount: Float!
+  badgePrinted: Boolean!
+  badgePrintedAt: DateTime
+  badgePrintedBy: String
   category: Category
   categoryId: String!
   checkedIn: Boolean!
@@ -633,6 +643,7 @@ type Registration {
   registeredBy: String
   transactions: [Transaction!]
   updatedAt: DateTime!
+  zone: String
 }
 
 type RegistrationPayload {
@@ -771,6 +782,7 @@ type User {
 
 type UserPayload {
   email: String!
+  eventRole: String
   firstName: String
   id: String!
   lastName: String

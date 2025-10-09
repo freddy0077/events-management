@@ -45,7 +45,22 @@ export class Registration {
   address: string;
 
   @Field({ nullable: true })
+  zone?: string;
+
+  @Field({ nullable: true })
   qrCode?: string;
+
+  @Field()
+  badgePrinted: boolean;
+
+  @Field({ nullable: true })
+  badgePrintedAt?: Date;
+
+  @Field({ nullable: true })
+  badgePrintedBy?: string;
+
+  @Field()
+  badgePrintCount: number;
 
   @Field()
   checkedIn: boolean;

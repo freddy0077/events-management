@@ -155,6 +155,15 @@ export class RegistrationResolver {
     return this.registrationService.findRegistrationByQRCode(qrCode);
   }
 
+  @Query(() => [Registration])
+  @UseGuards(GqlAuthGuard)
+  async searchRegistrations(
+    @Args('searchTerm') searchTerm: string,
+    @Args('eventId', { type: () => ID, nullable: true }) eventId?: string,
+  ): Promise<Registration[]> {
+    return this.registrationService.searchRegistrations(searchTerm, eventId);
+  }
+
   @Query(() => Registration, { nullable: true })
   async searchRegistrationByReceipt(
     @Args('receiptNumber') receiptNumber: string,

@@ -1,14 +1,17 @@
 'use client'
 
-import React from 'react'
+import React, { useState } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
-import { Calendar, MapPin, Users, AlertCircle } from 'lucide-react'
+import { Calendar, MapPin, Users, AlertCircle, Upload, X, Image as ImageIcon } from 'lucide-react'
 import { StepProps } from './types'
 
 export function EventDetailsStep({ formData, setFormData, errors, setErrors }: StepProps) {
+  const [logoPreview, setLogoPreview] = useState<string | null>(formData.logoUrl || null)
+  const [isUploadingLogo, setIsUploadingLogo] = useState(false)
+
   const handleInputChange = (field: keyof typeof formData, value: any) => {
     setFormData(prev => ({ ...prev, [field]: value }))
     
@@ -89,6 +92,50 @@ export function EventDetailsStep({ formData, setFormData, errors, setErrors }: S
     }
   }
 
+  const handleLogoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+
+    // Validate file type
+    const validTypes = ['image/png', 'image/jpeg', 'image/jpg', 'image/svg+xml']
+    if (!validTypes.includes(file.type)) {
+      setErrors(prev => ({ ...prev, logoUrl: 'Please upload a valid image file (PNG, JPG, or SVG)' }))
+      return
+    }
+
+    // Validate file size (max 5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      setErrors(prev => ({ ...prev, logoUrl: 'Logo file size must be less than 5MB' }))
+      return
+    }
+
+    setIsUploadingLogo(true)
+    
+    try {
+      // Convert to base64 for preview and storage
+      const reader = new FileReader()
+      reader.onloadend = () => {
+        const base64String = reader.result as string
+        setLogoPreview(base64String)
+        handleInputChange('logoUrl', base64String)
+        setIsUploadingLogo(false)
+      }
+      reader.onerror = () => {
+        setErrors(prev => ({ ...prev, logoUrl: 'Failed to read logo file' }))
+        setIsUploadingLogo(false)
+      }
+      reader.readAsDataURL(file)
+    } catch (error) {
+      setErrors(prev => ({ ...prev, logoUrl: 'Failed to upload logo' }))
+      setIsUploadingLogo(false)
+    }
+  }
+
+  const handleRemoveLogo = () => {
+    setLogoPreview(null)
+    handleInputChange('logoUrl', '')
+  }
+
   return (
     <Card className="bg-gradient-to-br from-blue-50 to-indigo-50 border-2 border-blue-200 shadow-xl">
       <CardHeader className="pb-4">
@@ -138,6 +185,68 @@ export function EventDetailsStep({ formData, setFormData, errors, setErrors }: S
             rows={4}
             className="border-blue-200 focus:border-blue-500 bg-white/80"
           />
+        </div>
+
+        {/* Event Logo Upload */}
+        <div className="space-y-2">
+          <Label className="text-sm font-medium text-gray-700 flex items-center gap-2">
+            <ImageIcon className="h-4 w-4" />
+            Event Logo (Optional)
+          </Label>
+          <div className="space-y-3">
+            {logoPreview ? (
+              <div className="relative inline-block">
+                <div className="border-2 border-blue-200 rounded-lg p-4 bg-white/80">
+                  <img 
+                    src={logoPreview} 
+                    alt="Event Logo Preview" 
+                    className="max-h-32 max-w-full object-contain"
+                  />
+                </div>
+                <button
+                  type="button"
+                  onClick={handleRemoveLogo}
+                  className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 hover:bg-red-600 transition-colors"
+                  title="Remove logo"
+                >
+                  <X className="h-4 w-4" />
+                </button>
+              </div>
+            ) : (
+              <div className="border-2 border-dashed border-blue-300 rounded-lg p-6 bg-white/80 hover:border-blue-400 transition-colors">
+                <label htmlFor="logo-upload" className="cursor-pointer flex flex-col items-center gap-2">
+                  <div className="p-3 bg-blue-100 rounded-full">
+                    <Upload className="h-6 w-6 text-blue-600" />
+                  </div>
+                  <div className="text-center">
+                    <p className="text-sm font-medium text-gray-700">
+                      {isUploadingLogo ? 'Uploading...' : 'Click to upload event logo'}
+                    </p>
+                    <p className="text-xs text-gray-500 mt-1">
+                      PNG, JPG or SVG (max 5MB)
+                    </p>
+                  </div>
+                  <input
+                    id="logo-upload"
+                    type="file"
+                    accept="image/png,image/jpeg,image/jpg,image/svg+xml"
+                    onChange={handleLogoUpload}
+                    disabled={isUploadingLogo}
+                    className="hidden"
+                  />
+                </label>
+              </div>
+            )}
+            {errors.logoUrl && (
+              <div className="flex items-center gap-2 text-red-600 text-sm">
+                <AlertCircle className="h-4 w-4" />
+                {errors.logoUrl}
+              </div>
+            )}
+            <p className="text-xs text-blue-600">
+              This logo will appear on event badges and materials
+            </p>
+          </div>
         </div>
 
         {/* Date Fields */}

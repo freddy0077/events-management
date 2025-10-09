@@ -3,7 +3,7 @@
  * Updated to match stakeholder requirements
  */
 
-export type UserRole = 'EVENT_ORGANIZER' | 'REGISTRATION_STAFF' | 'FINANCE_TEAM' | 'CATERING_TEAM' | 'ADMIN'
+export type UserRole = 'EVENT_ORGANIZER' | 'REGISTRATION_STAFF' | 'BADGE_PRINTER' | 'FINANCE_TEAM' | 'CATERING_TEAM' | 'ADMIN'
 
 export interface RoleDashboard {
   path: string
@@ -20,6 +20,8 @@ export function getRoleDashboardPath(role: UserRole): string {
       return '/organizer/dashboard'
     case 'REGISTRATION_STAFF':
       return '/staff/dashboard'
+    case 'BADGE_PRINTER':
+      return '/printer/dashboard'
     case 'FINANCE_TEAM':
       return '/admin/finance'
     case 'CATERING_TEAM':
@@ -53,6 +55,12 @@ export function getRoleDashboard(role: UserRole): RoleDashboard {
         path: '/staff/dashboard',
         name: 'Registration Staff Portal',
         description: 'Register participants, process payments, and print QR name tags'
+      }
+    case 'BADGE_PRINTER':
+      return {
+        path: '/printer/dashboard',
+        name: 'Badge Printer Portal',
+        description: 'Print and manage participant badges'
       }
     case 'FINANCE_TEAM':
       return {
@@ -110,6 +118,13 @@ export function hasAccessToPath(userRole: UserRole, path: string): boolean {
       '/staff/scanner',
       '/staff/badges'
     ],
+    BADGE_PRINTER: [
+      '/printer',
+      '/printer/dashboard',
+      '/printer/events',
+      '/printer/badges',
+      '/printer/scanner'
+    ],
     FINANCE_TEAM: [
       '/admin/finance',
       '/admin/reports'
@@ -140,6 +155,8 @@ export function getRoleWelcomeMessage(role: UserRole, firstName?: string): strin
       return `Welcome back${name}! You can manage your assigned events and coordinate all event staff activities.`
     case 'REGISTRATION_STAFF':
       return `Welcome back${name}! You can register participants, process payments, and print QR name tags.`
+    case 'BADGE_PRINTER':
+      return `Welcome back${name}! You can print and manage participant badges.`
     case 'FINANCE_TEAM':
       return `Welcome back${name}! You can monitor payments and reconcile financial transactions.`
     case 'CATERING_TEAM':
@@ -160,6 +177,8 @@ export function getRoleDisplayName(role: UserRole): string {
       return 'Event Manager'
     case 'REGISTRATION_STAFF':
       return 'Registration Staff'
+    case 'BADGE_PRINTER':
+      return 'Badge Printer'
     case 'FINANCE_TEAM':
       return 'Finance Team'
     case 'CATERING_TEAM':

@@ -197,6 +197,7 @@ export interface CreateEventInput {
   latePaymentFee?: number
   refundPolicy: 'full' | 'partial' | 'deposit' | 'none'
   badgeTemplateId?: string
+  logoUrl?: string
   categories?: CreateCategoryInput[]
   meals?: CreateMealInput[]
 }
@@ -219,6 +220,7 @@ export interface UpdateEventInput {
   fullPaymentDeadline?: string
   latePaymentFee?: number
   refundPolicy?: 'full' | 'partial' | 'deposit' | 'none'
+  logoUrl?: string
   categories?: UpdateCategoryInput[] // Add categories property for admin events edit page
   meals?: UpdateMealInput[] // Add meals property for admin events edit page
 }

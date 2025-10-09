@@ -30,7 +30,8 @@ import {
   X,
   Clock,
   Phone,
-  MapPin
+  MapPin,
+  QrCode
 } from 'lucide-react'
 import { useAuth } from '@/hooks/use-auth-simple'
 import { 
@@ -61,7 +62,8 @@ export default function OrganizerStaffPage() {
     lastName: '',
     email: '',
     password: '',
-    role: 'REGISTRATION_STAFF'
+    role: 'REGISTRATION_STAFF',
+    eventRole: 'REGISTRATION_ONLY' // The event-specific role
   })
   
   // Fetch assigned events
@@ -114,15 +116,21 @@ export default function OrganizerStaffPage() {
       case 'STAFF':
         // Backend STAFF role: 2 permissions
         return ['CREATE_REGISTRATION', 'SCAN_QR_CODES']
+      case 'REGISTRATION_ONLY':
+        // Registration only - can register but not print badges
+        return ['CREATE_REGISTRATION']
+      case 'BADGE_PRINTER':
+        // Badge printing only - can print badges but not register
+        return ['PRINT_BADGES', 'MANAGE_BADGES']
       case 'SUPERVISOR':
         // Map SUPERVISOR to backend COORDINATOR role: 4 permissions
-        return ['CREATE_REGISTRATION', 'VIEW_REPORTS', 'SCAN_QR_CODES', 'EXPORT_DATA']
+        return ['CREATE_REGISTRATION', 'VIEW_REPORTS', 'SCAN_QR_CODES', 'EXPORT_DATA', 'PRINT_BADGES', 'MANAGE_BADGES']
       case 'MANAGER':
         // MANAGER role - enhanced COORDINATOR with staff management: 5 permissions
-        return ['CREATE_REGISTRATION', 'VIEW_REPORTS', 'SCAN_QR_CODES', 'EXPORT_DATA', 'MANAGE_STAFF']
+        return ['CREATE_REGISTRATION', 'VIEW_REPORTS', 'SCAN_QR_CODES', 'EXPORT_DATA', 'MANAGE_STAFF', 'PRINT_BADGES', 'MANAGE_BADGES']
       case 'ORGANIZER':
         // Backend ORGANIZER role: 6 permissions
-        return ['CREATE_REGISTRATION', 'APPROVE_PAYMENT', 'MANAGE_STAFF', 'VIEW_REPORTS', 'SCAN_QR_CODES', 'EXPORT_DATA']
+        return ['CREATE_REGISTRATION', 'APPROVE_PAYMENT', 'MANAGE_STAFF', 'VIEW_REPORTS', 'SCAN_QR_CODES', 'EXPORT_DATA', 'PRINT_BADGES', 'MANAGE_BADGES']
       default:
         return []
     }
@@ -164,7 +172,8 @@ export default function OrganizerStaffPage() {
         // Auto-assign the new user to the selected event if an event is selected
         if (selectedEvent && (result.data as any).registerUser.user) {
           const newUserId = (result.data as any).registerUser.user.id
-          const assignmentRole = 'STAFF' // Use STAFF as the default EventStaffRole
+          // Use the selected event role
+          const assignmentRole = newUserData.eventRole
           
           try {
             // Automatically assign the new user to the selected event
@@ -214,7 +223,8 @@ export default function OrganizerStaffPage() {
             lastName: '',
             email: '',
             password: '',
-            role: 'REGISTRATION_STAFF'
+            role: 'REGISTRATION_STAFF',
+            eventRole: 'REGISTRATION_ONLY'
           })
         }
       }
@@ -234,6 +244,10 @@ export default function OrganizerStaffPage() {
         return 'bg-blue-100 text-blue-800'
       case 'STAFF':
         return 'bg-green-100 text-green-800'
+      case 'REGISTRATION_ONLY':
+        return 'bg-cyan-100 text-cyan-800'
+      case 'BADGE_PRINTER':
+        return 'bg-amber-100 text-amber-800'
       default:
         return 'bg-gray-100 text-gray-800'
     }
@@ -333,7 +347,8 @@ export default function OrganizerStaffPage() {
               <h4 className="font-semibold text-orange-900">Staff Role Assignment</h4>
               <p className="text-sm text-orange-800 mt-1">
                 As an Event Organizer, you can create new users with system-wide roles and assign them event-specific 
-                staff roles including <strong>Staff</strong>, <strong>Supervisor</strong>, and <strong>Manager</strong>. 
+                staff roles including <strong>Staff</strong>, <strong>Registration Only</strong>, <strong>Badge Printer</strong>, 
+                <strong>Supervisor</strong>, and <strong>Manager</strong>. 
                 Each role has specific permissions tailored to their responsibilities within the event.
               </p>
             </div>
@@ -427,17 +442,29 @@ export default function OrganizerStaffPage() {
 
                 <div>
                   <label className="text-sm font-medium text-gray-700 mb-2 block">
-                    User Role *
+                    Staff Role *
                   </label>
-                  <Select value={newUserData.role} onValueChange={(value) => setNewUserData({ ...newUserData, role: value })}>
+                  <Select value={newUserData.eventRole} onValueChange={(value) => {
+                    // Auto-set system role based on event role
+                    const systemRole = value === 'REGISTRATION_ONLY' || value === 'BADGE_PRINTER' ? 'REGISTRATION_STAFF' :
+                                      value === 'CATERING_TEAM' ? 'CATERING_TEAM' :
+                                      value === 'FINANCE_TEAM' ? 'FINANCE_TEAM' : 'REGISTRATION_STAFF'
+                    setNewUserData({ ...newUserData, eventRole: value, role: systemRole })
+                  }}>
                     <SelectTrigger>
-                      <SelectValue placeholder="Select user role" />
+                      <SelectValue placeholder="Select staff role" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="REGISTRATION_STAFF">
+                      <SelectItem value="REGISTRATION_ONLY">
                         <div className="flex items-center space-x-2">
-                          <Badge className="bg-orange-100 text-orange-800">Registration Staff</Badge>
-                          <span className="text-sm text-gray-600">- Registers participants, processes payments, prints QR tags</span>
+                          <Badge className="bg-cyan-100 text-cyan-800">Registration Only</Badge>
+                          <span className="text-sm text-gray-600">- Can register participants only (no badge printing)</span>
+                        </div>
+                      </SelectItem>
+                      <SelectItem value="BADGE_PRINTER">
+                        <div className="flex items-center space-x-2">
+                          <Badge className="bg-amber-100 text-amber-800">Badge Printer</Badge>
+                          <span className="text-sm text-gray-600">- Can print & manage badges only (no registration)</span>
                         </div>
                       </SelectItem>
                       <SelectItem value="FINANCE_TEAM">
@@ -452,16 +479,10 @@ export default function OrganizerStaffPage() {
                           <span className="text-sm text-gray-600">- Verifies eligibility during meal sessions via QR scans</span>
                         </div>
                       </SelectItem>
-                      <SelectItem value="EVENT_ORGANIZER">
-                        <div className="flex items-center space-x-2">
-                          <Badge className="bg-purple-100 text-purple-800">Event Organizer</Badge>
-                          <span className="text-sm text-gray-600">- Manages assigned events, adds event staff, oversees operations</span>
-                        </div>
-                      </SelectItem>
                     </SelectContent>
                   </Select>
                   <p className="text-xs text-gray-500 mt-1">
-                    This determines the user's system-wide permissions. You can assign them specific event roles below.
+                    Select the role for this staff member. They will be assigned to the selected event.
                   </p>
                 </div>
 
@@ -571,19 +592,31 @@ export default function OrganizerStaffPage() {
                       <SelectItem value="STAFF">
                         <div className="flex items-center space-x-2">
                           <Badge className="bg-green-100 text-green-800">Staff</Badge>
-                          <span className="text-sm text-gray-600">- Basic staff member, can register participants, scan QR codes</span>
+                          <span className="text-sm text-gray-600">- Can register participants & scan QR codes</span>
+                        </div>
+                      </SelectItem>
+                      <SelectItem value="REGISTRATION_ONLY">
+                        <div className="flex items-center space-x-2">
+                          <Badge className="bg-cyan-100 text-cyan-800">Registration Only</Badge>
+                          <span className="text-sm text-gray-600">- Can register participants only (no badge printing)</span>
+                        </div>
+                      </SelectItem>
+                      <SelectItem value="BADGE_PRINTER">
+                        <div className="flex items-center space-x-2">
+                          <Badge className="bg-amber-100 text-amber-800">Badge Printer</Badge>
+                          <span className="text-sm text-gray-600">- Can print & manage badges only (no registration)</span>
                         </div>
                       </SelectItem>
                       <SelectItem value="SUPERVISOR">
                         <div className="flex items-center space-x-2">
                           <Badge className="bg-blue-100 text-blue-800">Supervisor</Badge>
-                          <span className="text-sm text-gray-600">- Can manage other staff, view reports</span>
+                          <span className="text-sm text-gray-600">- Can manage staff, view reports, print badges</span>
                         </div>
                       </SelectItem>
                       <SelectItem value="MANAGER">
                         <div className="flex items-center space-x-2">
                           <Badge className="bg-purple-100 text-purple-800">Manager</Badge>
-                          <span className="text-sm text-gray-600">- Can modify event settings, manage all aspects</span>
+                          <span className="text-sm text-gray-600">- Full access to event settings & all features</span>
                         </div>
                       </SelectItem>
                     </SelectContent>
@@ -710,7 +743,31 @@ export default function OrganizerStaffPage() {
               <div>
                 <h4 className="font-semibold text-gray-900">Staff Role</h4>
                 <p className="text-sm text-gray-600">
-                  Basic staff members can register participants and scan QR codes for check-ins
+                  Can register participants and scan QR codes for check-ins
+                </p>
+              </div>
+            </div>
+            
+            <div className="flex items-start space-x-3">
+              <div className="p-2 bg-cyan-100 rounded-lg">
+                <UserPlus className="h-4 w-4 text-cyan-600" />
+              </div>
+              <div>
+                <h4 className="font-semibold text-gray-900">Registration Only</h4>
+                <p className="text-sm text-gray-600">
+                  Can register participants but cannot print badges
+                </p>
+              </div>
+            </div>
+            
+            <div className="flex items-start space-x-3">
+              <div className="p-2 bg-amber-100 rounded-lg">
+                <QrCode className="h-4 w-4 text-amber-600" />
+              </div>
+              <div>
+                <h4 className="font-semibold text-gray-900">Badge Printer</h4>
+                <p className="text-sm text-gray-600">
+                  Can print and manage badges but cannot register participants
                 </p>
               </div>
             </div>
@@ -722,7 +779,7 @@ export default function OrganizerStaffPage() {
               <div>
                 <h4 className="font-semibold text-gray-900">Supervisor Role</h4>
                 <p className="text-sm text-gray-600">
-                  Supervisors can manage other staff members and view detailed reports
+                  Can manage staff, view reports, and print badges
                 </p>
               </div>
             </div>
@@ -734,7 +791,7 @@ export default function OrganizerStaffPage() {
               <div>
                 <h4 className="font-semibold text-gray-900">Manager Role</h4>
                 <p className="text-sm text-gray-600">
-                  Managers can modify event settings and manage all aspects of the event
+                  Full access to modify event settings and manage all aspects
                 </p>
               </div>
             </div>
@@ -744,9 +801,9 @@ export default function OrganizerStaffPage() {
                 <Shield className="h-4 w-4 text-orange-600" />
               </div>
               <div>
-                <h4 className="font-semibold text-gray-900">Role Hierarchy</h4>
+                <h4 className="font-semibold text-gray-900">Separation of Duties</h4>
                 <p className="text-sm text-gray-600">
-                  As an Event Organizer, you can assign Staff, Supervisor, and Manager roles based on event needs
+                  You can separate registration and badge printing responsibilities for better control
                 </p>
               </div>
             </div>

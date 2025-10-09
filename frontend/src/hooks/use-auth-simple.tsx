@@ -11,6 +11,7 @@ interface User {
   firstName: string
   lastName: string
   role: string
+  eventRole?: string
   mustChangePassword?: boolean
   createdAt?: string
 }

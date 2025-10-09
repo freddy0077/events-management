@@ -94,7 +94,11 @@ export function calculateAmountPaid(transactions: any[]): number {
  */
 export function getRegistrationAmount(registration: any): number {
   const amountPaid = calculateAmountPaid(registration.transactions);
-  console.log(registration.categoryPrice);
-  return registration.categoryPrice;
-  return amountPaid > 0 ? amountPaid : (registration.category?.price || 0);
+  const categoryPrice = registration?.category?.price ?? 0;
+
+  if (Number.isFinite(amountPaid) && amountPaid > 0) {
+    return amountPaid;
+  }
+
+  return Number.isFinite(categoryPrice) ? categoryPrice : 0;
 }

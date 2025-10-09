@@ -34,7 +34,8 @@ import {
   RefreshCw,
   Crown,
   Mail,
-  Phone
+  Phone,
+  Image as ImageIcon
 } from 'lucide-react'
 import { useAuth } from '@/hooks/use-auth-simple'
 import { useEvent } from '@/lib/graphql/hooks'
@@ -268,6 +269,18 @@ export default function AdminEventDetailPage() {
               <ArrowLeft className="h-4 w-4 mr-2" />
               Back
             </Button>
+            {/* Event Logo */}
+            {event.logoUrl ? (
+              <img
+                src={event.logoUrl}
+                alt={`${event.name} logo`}
+                className="w-20 h-20 rounded-xl object-cover border-2 border-brand-200 shadow-md"
+              />
+            ) : (
+              <div className="w-20 h-20 rounded-xl bg-gradient-to-br from-brand-100 to-primary-100 flex items-center justify-center border-2 border-brand-200 shadow-md">
+                <ImageIcon className="h-10 w-10 text-brand-400" />
+              </div>
+            )}
             <div>
               <div className="inline-flex items-center gap-2 bg-brand-50 border border-brand-200 rounded-full px-4 py-2 mb-2">
                 <Calendar className="h-4 w-4 text-brand-600" />

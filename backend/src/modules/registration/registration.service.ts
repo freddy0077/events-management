@@ -155,6 +155,7 @@ export class RegistrationService {
       email, 
       phone, 
       address, 
+      zone,
       receiptNumber, 
       specialRequests, 
       paymentMethod 
@@ -218,6 +219,7 @@ export class RegistrationService {
           email,
           phone: phone || '',
           address: address || '',
+          zone: zone || null,
           notes: specialRequests || '',
           registeredBy: staffUserId,
         },
@@ -373,6 +375,38 @@ export class RegistrationService {
     }
 
     return registration;
+  }
+
+  async searchRegistrations(searchTerm: string, eventId?: string): Promise<Registration[]> {
+    if (!searchTerm || searchTerm.trim() === '') {
+      return [];
+    }
+
+    const where: any = {
+      OR: [
+        { fullName: { contains: searchTerm, mode: 'insensitive' } },
+        { email: { contains: searchTerm, mode: 'insensitive' } },
+        { phone: { contains: searchTerm, mode: 'insensitive' } },
+        { id: { contains: searchTerm, mode: 'insensitive' } },
+      ],
+    };
+
+    if (eventId) {
+      where.eventId = eventId;
+    }
+
+    return this.prisma.registration.findMany({
+      where,
+      include: {
+        event: true,
+        category: true,
+        transactions: true,
+      },
+      take: 50, // Limit results
+      orderBy: {
+        createdAt: 'desc',
+      },
+    });
   }
 
   async searchRegistrationByReceipt(receiptNumber: string): Promise<Registration | null> {

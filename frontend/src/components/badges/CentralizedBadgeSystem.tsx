@@ -17,6 +17,7 @@ export interface BadgeData {
   // Event Information
   eventName: string
   eventDate: string
+  eventEndDate?: string
   eventVenue: string
   eventLogo?: string
   
@@ -289,44 +290,73 @@ const ProfessionalBadgeVariant = forwardRef<HTMLDivElement, {
       flexDirection: 'column'
     }}
   >
-    {/* Header */}
+    {/* Header - Dedicated to Event Name and Logo */}
     <div style={{
       background: colors.headerGradient || colors.primary,
       color: 'white',
-      padding: '20px 24px',
-      position: 'relative'
+      padding: '32px 24px',
+      display: 'flex',
+      flexDirection: 'column',
+      alignItems: 'center',
+      justifyContent: 'center',
+      gap: '16px'
     }}>
+      {/* Event Logo */}
+      {data.eventLogo && (
+        <div style={{
+          maxHeight: '80px',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center'
+        }}>
+          <img 
+            src={data.eventLogo} 
+            alt="Event Logo" 
+            style={{
+              maxHeight: '80px',
+              maxWidth: '240px',
+              objectFit: 'contain'
+            }}
+          />
+        </div>
+      )}
+      
+      {/* Event Name */}
       <div style={{
-        fontSize: config.fontSize,
-        fontWeight: '600',
-        marginBottom: '8px'
+        fontSize: `calc(${config.fontSize} + 4px)`,
+        fontWeight: '700',
+        textAlign: 'center',
+        lineHeight: '1.3'
       }}>
         {data.eventName}
       </div>
+      
+      {/* Event Dates */}
       <div style={{
-        color: 'rgba(255, 255, 255, 0.9)',
-        fontSize: `calc(${config.fontSize} - 2px)`,
-        fontWeight: '400'
+        color: 'rgba(255, 255, 255, 0.95)',
+        fontSize: config.fontSize,
+        fontWeight: '500',
+        textAlign: 'center',
+        display: 'flex',
+        flexDirection: 'column',
+        gap: '4px'
       }}>
-        {data.eventDate} • {data.eventVenue}
-      </div>
-
-      {/* Badge Type Ribbon */}
-      <div style={{
-        position: 'absolute',
-        bottom: '-1px',
-        right: '24px',
-        backgroundColor: colors.accent,
-        color: colors.text,
-        padding: '8px 20px',
-        borderTopLeftRadius: '8px',
-        borderTopRightRadius: '8px',
-        fontSize: '12px',
-        fontWeight: '700',
-        letterSpacing: '1px',
-        textTransform: 'uppercase'
-      }}>
-        {data.badgeType}
+        <div>
+          {data.eventEndDate ? (
+            <>
+              <div>Start: {data.eventDate}</div>
+              <div>End: {data.eventEndDate}</div>
+            </>
+          ) : (
+            data.eventDate
+          )}
+        </div>
+        <div style={{
+          fontSize: `calc(${config.fontSize} - 1px)`,
+          color: 'rgba(255, 255, 255, 0.85)'
+        }}>
+          {data.eventVenue}
+        </div>
       </div>
     </div>
 
@@ -344,7 +374,7 @@ const ProfessionalBadgeVariant = forwardRef<HTMLDivElement, {
         marginBottom: '24px'
       }}>
         <div style={{
-          fontSize: `calc(${config.fontSize} * 2)`,
+          fontSize: `calc(${config.fontSize} * 2.2)`,
           fontWeight: '700',
           color: '#1A1A1A',
           lineHeight: '1.2',
@@ -353,7 +383,7 @@ const ProfessionalBadgeVariant = forwardRef<HTMLDivElement, {
           {data.firstName}
         </div>
         <div style={{
-          fontSize: `calc(${config.fontSize} * 2)`,
+          fontSize: `calc(${config.fontSize} * 2.2)`,
           fontWeight: '700',
           color: '#1A1A1A',
           lineHeight: '1.2',
@@ -453,16 +483,19 @@ const ProfessionalBadgeVariant = forwardRef<HTMLDivElement, {
         </div>
       )}
 
-      {/* Category Badge */}
+      {/* Category Badge - Enhanced Legibility */}
       <div style={{
         display: 'inline-block',
         backgroundColor: colors.primary,
         color: 'white',
-        padding: '6px 12px',
-        borderRadius: '20px',
-        fontSize: '13px',
-        fontWeight: '600',
-        marginBottom: '20px'
+        padding: '14px 28px',
+        borderRadius: '28px',
+        fontSize: '18px',
+        fontWeight: '800',
+        marginBottom: '20px',
+        letterSpacing: '1px',
+        textTransform: 'uppercase',
+        boxShadow: '0 2px 8px rgba(0,0,0,0.15)'
       }}>
         {data.category}
       </div>
@@ -506,21 +539,16 @@ const ProfessionalBadgeVariant = forwardRef<HTMLDivElement, {
       backgroundColor: colors.primary,
       padding: '12px 24px',
       display: 'flex',
-      justifyContent: 'space-between',
+      justifyContent: 'center',
       alignItems: 'center'
     }}>
       <div style={{
-        color: 'white',
+        color: 'rgba(255, 255, 255, 0.85)',
         fontSize: '10px',
+        textAlign: 'center',
         fontWeight: '500'
       }}>
-        EventReg System
-      </div>
-      <div style={{
-        color: 'rgba(255, 255, 255, 0.8)',
-        fontSize: '9px'
-      }}>
-        {data.eventDate}
+        {data.eventEndDate ? `${data.eventDate} - ${data.eventEndDate}` : data.eventDate}
       </div>
     </div>
   </div>
@@ -552,12 +580,32 @@ const MinimalBadgeVariant = forwardRef<HTMLDivElement, {
       boxSizing: 'border-box'
     }}
   >
+    {/* Event Logo */}
+    {data.eventLogo && (
+      <div style={{
+        marginBottom: '12px',
+        display: 'flex',
+        justifyContent: 'center'
+      }}>
+        <img 
+          src={data.eventLogo} 
+          alt="Event Logo" 
+          style={{
+            maxHeight: '40px',
+            maxWidth: '150px',
+            objectFit: 'contain'
+          }}
+        />
+      </div>
+    )}
+    
     {/* Event Name */}
     <div style={{
       fontSize: config.fontSize,
       color: '#888888',
       marginBottom: '20px',
-      letterSpacing: '0.5px'
+      letterSpacing: '0.5px',
+      textAlign: 'center'
     }}>
       {data.eventName}
     </div>
@@ -661,7 +709,7 @@ const MinimalBadgeVariant = forwardRef<HTMLDivElement, {
       paddingTop: '12px',
       marginTop: 'auto'
     }}>
-      {data.eventDate} • {data.eventVenue}
+      {data.eventEndDate ? `${data.eventDate} - ${data.eventEndDate}` : data.eventDate} • {data.eventVenue}
     </div>
   </div>
 ))
@@ -699,9 +747,24 @@ const CompactBadgeVariant = forwardRef<HTMLDivElement, {
       padding: '8px 12px',
       margin: '-16px -16px 16px -16px',
       fontSize: '12px',
-      fontWeight: '600'
+      fontWeight: '600',
+      display: 'flex',
+      flexDirection: 'column',
+      alignItems: 'center',
+      gap: '8px'
     }}>
-      {data.eventName}
+      {data.eventLogo && (
+        <img 
+          src={data.eventLogo} 
+          alt="Event Logo" 
+          style={{
+            maxHeight: '30px',
+            maxWidth: '100px',
+            objectFit: 'contain'
+          }}
+        />
+      )}
+      <div style={{ textAlign: 'center' }}>{data.eventName}</div>
     </div>
 
     {/* Name and QR Code */}

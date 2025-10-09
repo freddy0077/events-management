@@ -23,16 +23,10 @@ export interface BadgeTemplateLayout {
     height: number
     backgroundColor: string
     borderRadius: number
-    branding: {
-      fontSize: number
-      fontWeight: string
-      color: string
-      text: string
-    }
-    tagline: {
-      fontSize: number
-      color: string
-      text: string
+    logo: {
+      maxHeight: number
+      maxWidth: number
+      marginBottom: number
     }
   }
   
@@ -68,13 +62,6 @@ export interface BadgeTemplateLayout {
   // Participant Section
   participantSection: {
     marginTop: number
-    label: {
-      fontSize: number
-      fontWeight: string
-      color: string
-      text: string
-      align: 'left' | 'center' | 'right'
-    }
     nameCard: {
       marginTop: number
       height: number
@@ -166,19 +153,13 @@ export const professionalTemplate: BadgeTemplateLayout = {
   },
   
   header: {
-    height: 60,  // Reduced from 70 to fit A6 height better
+    height: 70,  // Increased to accommodate logo
     backgroundColor: '#1e293b', // Will be overridden by template colors
     borderRadius: 6,
-    branding: {
-      fontSize: 22, // Reduced from 26 to fit A6 width better
-      fontWeight: 'bold',
-      color: '#ffffff',
-      text: 'EventReg'
-    },
-    tagline: {
-      fontSize: 7,  // Reduced from 8 for better fit
-      color: '#cbd5e1',
-      text: 'PROFESSIONAL EVENT MANAGEMENT'
+    logo: {
+      maxHeight: 50,  // Maximum logo height
+      maxWidth: 200,  // Maximum logo width
+      marginBottom: 8
     }
   },
   
@@ -212,15 +193,8 @@ export const professionalTemplate: BadgeTemplateLayout = {
   
   participantSection: {
     marginTop: 32, // Reduced from 40 to optimize vertical space
-    label: {
-      fontSize: 8,  // Reduced from 9 for better proportions
-      fontWeight: 'bold',
-      color: '#94a3b8',
-      text: 'PARTICIPANT',
-      align: 'center'
-    },
     nameCard: {
-      marginTop: 16, // Reduced from 20 to optimize spacing
+      marginTop: 0,  // No margin since label removed
       height: 44,    // Reduced from 50 to fit A6 better
       backgroundColor: '#334155', // Will be overridden by template colors
       borderRadius: 6,
@@ -232,13 +206,13 @@ export const professionalTemplate: BadgeTemplateLayout = {
       }
     },
     categoryBadge: {
-      marginTop: 7,  // Reduced from 8 to optimize spacing
+      marginTop: 10,  // Increased for better spacing
       backgroundColor: '#ffffff',
       borderColor: '#475569', // Will be overridden by template colors
-      borderWidth: 1,
-      borderRadius: 6, // Reduced from 8 for better proportions
-      padding: 8,      // Reduced from 10 for better fit
-      fontSize: 7,     // Reduced from 8 for better fit
+      borderWidth: 2,  // Increased for better visibility
+      borderRadius: 8, // Increased for better proportions
+      padding: 12,     // Increased for better legibility
+      fontSize: 10,    // Increased from 7 for better legibility
       fontWeight: 'bold',
       color: '#475569', // Will be overridden by template colors
       align: 'center'

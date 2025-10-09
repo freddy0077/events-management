@@ -13,6 +13,7 @@ export const CREATE_EVENT = gql`
       endDate
       venue
       maxCapacity
+      logoUrl
       isActive
       createdAt
       categories {
@@ -37,6 +38,7 @@ export const UPDATE_EVENT = gql`
       endDate
       venue
       maxCapacity
+      logoUrl
       isActive
       updatedAt
       categories {

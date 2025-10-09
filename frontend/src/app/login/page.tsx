@@ -34,14 +34,22 @@ export default function LoginPage() {
       const userData = JSON.parse(localStorage.getItem('user') || '{}')
       const backendRole = userData.role as 'ADMIN' | 'EVENT_ORGANIZER' | 'REGISTRATION_STAFF' | 'FINANCE_TEAM' | 'CATERING_TEAM'
       
-      // Map backend role to frontend UserRole (they should match now)
-      const mapBackendRoleToUserRole = (role: string): UserRole => {
+      // Check if user has badge printer event role
+      // This is stored in localStorage after checking event staff assignments
+      const eventRole = userData.eventRole || null
+      
+      // Map backend role to frontend UserRole
+      const mapBackendRoleToUserRole = (role: string, eventRole: string | null): UserRole => {
         switch (role) {
           case 'ADMIN':
             return 'ADMIN'
           case 'EVENT_ORGANIZER':
             return 'EVENT_ORGANIZER'
           case 'REGISTRATION_STAFF':
+            // Check if they're specifically a badge printer
+            if (eventRole === 'BADGE_PRINTER') {
+              return 'BADGE_PRINTER'
+            }
             return 'REGISTRATION_STAFF'
           case 'FINANCE_TEAM':
             return 'FINANCE_TEAM'
@@ -52,7 +60,7 @@ export default function LoginPage() {
         }
       }
       
-      const userRole = mapBackendRoleToUserRole(backendRole)
+      const userRole = mapBackendRoleToUserRole(backendRole, eventRole)
       
       // Get role-based dashboard path and welcome message
       const dashboardPath = getRoleDashboardPath(userRole)

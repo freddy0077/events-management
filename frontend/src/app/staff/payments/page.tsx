@@ -176,6 +176,9 @@ export default function StaffPaymentsPage() {
     count: filteredPayments.length
   }
 
+  const completedPercentage = stats.total > 0 ? ((stats.completed / stats.total) * 100).toFixed(1) : '0.0'
+  const feesPercentage = stats.total > 0 ? ((stats.fees / stats.total) * 100).toFixed(2) : '0.00'
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -226,7 +229,7 @@ export default function StaffPaymentsPage() {
                 <p className="text-2xl font-bold text-gray-900">{formatCurrency(stats.completed)}</p>
                 <p className="text-xs text-green-600 flex items-center">
                   <ArrowUpRight className="h-3 w-3 mr-1" />
-                  {((stats.completed / stats.total) * 100).toFixed(1)}%
+                  {completedPercentage}%
                 </p>
               </div>
             </div>
@@ -260,7 +263,7 @@ export default function StaffPaymentsPage() {
                 <p className="text-sm font-medium text-gray-600">Processing Fees</p>
                 <p className="text-2xl font-bold text-gray-900">{formatCurrency(stats.fees)}</p>
                 <p className="text-xs text-gray-500">
-                  {((stats.fees / stats.total) * 100).toFixed(2)}% of revenue
+                  {feesPercentage}% of revenue
                 </p>
               </div>
             </div>

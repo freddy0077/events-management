@@ -8,7 +8,8 @@ import { getTemplateLayout, applyTemplateColors, getPDFAlignment, getPDFFont } f
 export interface BadgeData {
   participantName: string;
   eventName: string;
-  eventDate: string;
+  eventStartDate: string;
+  eventEndDate?: string;
   venue: string;
   category: string;
   categoryColor?: string;
@@ -76,6 +77,18 @@ export class BadgeService {
 
     // Generate print data based on format
     const printData = await this.generatePrintData(badgeData, qrCodeResult, defaultOptions);
+
+    // Track badge printing
+    await this.prisma.registration.update({
+      where: { id: registrationId },
+      data: {
+        badgePrinted: true,
+        badgePrintedAt: new Date(),
+        badgePrintCount: {
+          increment: 1
+        }
+      }
+    });
 
     return {
       badgeData,
@@ -226,15 +239,28 @@ export class BadgeService {
     console.log('Override Badge Template ID:', overrideBadgeTemplateId);
     console.log('Final Badge Template ID:', finalTemplateId);
     
+    const startDate = new Date(registration.event.date);
+    const endDate = registration.event.endDate ? new Date(registration.event.endDate) : null;
+    
+    // Format start date
+    const eventStartDate = startDate.toLocaleDateString('en-US', {
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric'
+    });
+    
+    // Format end date if exists
+    const eventEndDate = endDate ? endDate.toLocaleDateString('en-US', {
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric'
+    }) : undefined;
+    
     return {
       participantName: registration.fullName,
       eventName: registration.event.name,
-      eventDate: new Date(registration.event.date).toLocaleDateString('en-US', {
-        weekday: 'long',
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric'
-      }),
+      eventStartDate,
+      eventEndDate,
       venue: registration.event.venue,
       category: registration.category.name,
       categoryColor: this.getCategoryColor(registration.category.name),
@@ -343,221 +369,37 @@ export class BadgeService {
   ): Promise<void> {
     const { badgeData, qrCodeResult } = badge;
 
-    // Get centralized template layout
-    const templateLayout = getTemplateLayout('professional');
+    // SIMPLE BADGE DESIGN - Just Name and QR Code
     
-    // Get template colors based on event's selected badge template
-    const templateColors = badgeData.badgeTemplateId 
-      ? this.getTemplateColors(badgeData.badgeTemplateId)
-      : { primary: '#1e293b', secondary: '#334155', accent: '#475569' };
-
-    // Apply template colors to layout
-    const styledLayout = applyTemplateColors(templateLayout, templateColors);
-
-    // CENTRALIZED BADGE DESIGN - Using Template Structure
-    
-    // Clean background
+    // White background
     doc.rect(x, y, width, height)
-       .fill(styledLayout.backgroundColor);
+       .fill('#ffffff');
 
-    // Professional outer border using template colors
-    doc.roundedRect(
-      x + styledLayout.border.width, 
-      y + styledLayout.border.width, 
-      width - (styledLayout.border.width * 2), 
-      height - (styledLayout.border.width * 2), 
-      styledLayout.border.borderRadius
-    )
-       .lineWidth(styledLayout.border.width)
-       .stroke(styledLayout.border.color);
-
-    // HEADER SECTION - Using template structure
-    const headerX = x + styledLayout.dimensions.margin;
-    const headerY = y + styledLayout.dimensions.margin;
-    const headerWidth = width - (styledLayout.dimensions.margin * 2);
+    const margin = 20;
+    const contentWidth = width - (margin * 2);
     
-    // Header background
-    doc.roundedRect(headerX, headerY, headerWidth, styledLayout.header.height, styledLayout.header.borderRadius)
-       .fill(styledLayout.header.backgroundColor);
-
-    // Company branding
-    doc.fontSize(styledLayout.header.branding.fontSize)
-       .font(getPDFFont(styledLayout.header.branding.fontWeight))
-       .fillColor(styledLayout.header.branding.color)
-       .text(styledLayout.header.branding.text, headerX + 12, headerY + 12);
-
-    // Professional tagline
-    doc.fontSize(styledLayout.header.tagline.fontSize)
-       .font(getPDFFont('normal'))
-       .fillColor(styledLayout.header.tagline.color)
-       .text(styledLayout.header.tagline.text, headerX + 12, headerY + 42);
-
-    // Registration ID box
-    if (badgeData.registrationNumber) {
-      const regBoxWidth = 70;
-      const regBoxX = headerX + headerWidth - regBoxWidth - 8;
-      
-      doc.roundedRect(regBoxX, headerY + 8, regBoxWidth, 35, 4)
-         .fill('#ffffff')
-         .stroke('#e2e8f0')
-         .lineWidth(1);
-
-      doc.fontSize(7).font('Helvetica')
-         .fillColor('#64748b')
-         .text('REG ID', regBoxX + 5, headerY + 13, { 
-           align: 'center', 
-           width: regBoxWidth - 10
-         });
-      
-      doc.fontSize(8).font('Helvetica-Bold')
-         .fillColor(styledLayout.border.color)
-         .text(badgeData.registrationNumber, regBoxX + 5, headerY + 25, { 
-           align: 'center', 
-           width: regBoxWidth - 10 
-         });
-    }
-
-    // EVENT SECTION - Using template structure
-    const eventSectionY = headerY + styledLayout.header.height + styledLayout.eventSection.marginTop;
-    
-    // Event name - Full width since QR is now in separate section
-    doc.fontSize(styledLayout.eventSection.eventName.fontSize)
-       .font(getPDFFont(styledLayout.eventSection.eventName.fontWeight))
-       .fillColor(styledLayout.eventSection.eventName.color)
-       .text(badgeData.eventName, headerX, eventSectionY, { 
-         width: headerWidth,
-         align: getPDFAlignment(styledLayout.eventSection.eventName.align)
-       });
-
-    // Professional separator line using template styling
-    const separatorY = eventSectionY + styledLayout.eventSection.separator.marginTop;
-    const separatorMargin = 35;
-    doc.moveTo(headerX + separatorMargin, separatorY)
-       .lineTo(headerX + headerWidth - separatorMargin, separatorY)
-       .lineWidth(styledLayout.eventSection.separator.width)
-       .stroke(styledLayout.eventSection.separator.color);
-
-    // Event details - Using template styling
-    const eventDetailsY = separatorY + styledLayout.eventSection.separator.marginBottom;
-    
-    doc.fontSize(styledLayout.eventSection.eventDetails.date.fontSize)
-       .font(getPDFFont('normal'))
-       .fillColor(styledLayout.eventSection.eventDetails.date.color)
-       .text(badgeData.eventDate, headerX, eventDetailsY, { 
-         width: headerWidth,
-         align: getPDFAlignment(styledLayout.eventSection.eventDetails.date.align)
-       });
-
-    doc.fontSize(styledLayout.eventSection.eventDetails.venue.fontSize)
-       .font(getPDFFont('normal'))
-       .fillColor(styledLayout.eventSection.eventDetails.venue.color)
-       .text(badgeData.venue, headerX, eventDetailsY + 16, { 
-         width: headerWidth,
-         align: getPDFAlignment(styledLayout.eventSection.eventDetails.venue.align)
-       });
-
-    // PARTICIPANT SECTION - Using template structure
-    const participantSectionY = eventDetailsY + styledLayout.participantSection.marginTop;
-    
-    // Participant label - Using template styling
-    doc.fontSize(styledLayout.participantSection.label.fontSize)
-       .font(getPDFFont(styledLayout.participantSection.label.fontWeight))
-       .fillColor(styledLayout.participantSection.label.color)
-       .text(styledLayout.participantSection.label.text, headerX, participantSectionY, { 
-         width: headerWidth,
-         align: getPDFAlignment(styledLayout.participantSection.label.align)
-       });
-
-    // PARTICIPANT NAME CARD - Using template structure
-    const nameCardY = participantSectionY + styledLayout.participantSection.nameCard.marginTop;
-    const nameCardHeight = styledLayout.participantSection.nameCard.height;
-    
-    // Name background using template styling
-    doc.roundedRect(headerX, nameCardY, headerWidth, nameCardHeight, styledLayout.participantSection.nameCard.borderRadius)
-       .fill(styledLayout.participantSection.nameCard.backgroundColor);
-
-    // Participant name - Dynamic sizing and template styling
-    const nameSize = badgeData.participantName.length > 25 ? styledLayout.participantSection.nameCard.name.fontSize * 0.8 : 
-                     badgeData.participantName.length > 18 ? styledLayout.participantSection.nameCard.name.fontSize * 0.9 : 
-                     styledLayout.participantSection.nameCard.name.fontSize;
+    // Participant Name - Large and centered at top
+    const nameY = y + 40;
+    const nameSize = badgeData.participantName.length > 20 ? 24 : 32;
     
     doc.fontSize(nameSize)
-       .font(getPDFFont(styledLayout.participantSection.nameCard.name.fontWeight))
-       .fillColor(styledLayout.participantSection.nameCard.name.color)
-       .text(badgeData.participantName, headerX + 6, nameCardY + 16, { 
-         width: headerWidth - 12, 
-         align: getPDFAlignment(styledLayout.participantSection.nameCard.name.align)
+       .font('Helvetica-Bold')
+       .fillColor('#000000')
+       .text(badgeData.participantName, x + margin, nameY, { 
+         width: contentWidth, 
+         align: 'center'
        });
 
-    // Category badge - Using template structure
-    const categoryBadgeY = nameCardY + nameCardHeight + styledLayout.participantSection.categoryBadge.marginTop;
-    const categoryText = badgeData.category.toUpperCase();
-    const categoryTextWidth = doc.widthOfString(categoryText);
-    const categoryBadgeWidth = categoryTextWidth + (styledLayout.participantSection.categoryBadge.padding * 2);
-    const categoryBadgeX = headerX + (headerWidth - categoryBadgeWidth) / 2;
-
-    doc.roundedRect(categoryBadgeX, categoryBadgeY, categoryBadgeWidth, 16, styledLayout.participantSection.categoryBadge.borderRadius)
-       .fill(styledLayout.participantSection.categoryBadge.backgroundColor)
-       .stroke(styledLayout.participantSection.categoryBadge.borderColor)
-       .lineWidth(styledLayout.participantSection.categoryBadge.borderWidth);
-
-    doc.fontSize(styledLayout.participantSection.categoryBadge.fontSize)
-       .font(getPDFFont(styledLayout.participantSection.categoryBadge.fontWeight))
-       .fillColor(styledLayout.participantSection.categoryBadge.color)
-       .text(categoryText, categoryBadgeX + styledLayout.participantSection.categoryBadge.padding, categoryBadgeY + 4);
-
-    // QR CODE SECTION - Positioned as separate section below participant info
-    if (qrCodeResult?.base64Image && styledLayout.qrSection.position === 'separate-section') {
-      const qrSectionY = categoryBadgeY + 20 + (styledLayout.qrSection.marginTop || 16);
-      const qrSize = styledLayout.qrSection.size;
-      const qrX = headerX + (headerWidth - qrSize) / 2; // Center the QR code
-
-      // QR frame using template styling
-      doc.roundedRect(qrX - 8, qrSectionY - 8, qrSize + 16, qrSize + 16, 8)
-         .fill('#ffffff')
-         .stroke(styledLayout.qrSection.frameColor)
-         .lineWidth(styledLayout.qrSection.frameWidth);
+    // QR CODE - Centered below name
+    if (qrCodeResult?.base64Image) {
+      const qrSize = 150; // Large QR code
+      const qrY = nameY + 80; // Space below name
+      const qrX = x + (width - qrSize) / 2; // Center horizontally
 
       // QR Code
       const qrBuffer = Buffer.from(qrCodeResult.base64Image.split(',')[1], 'base64');
-      doc.image(qrBuffer, qrX, qrSectionY, { width: qrSize, height: qrSize });
-
-      // QR instruction - Below QR code
-      doc.fontSize(styledLayout.qrSection.instruction.fontSize)
-         .font(getPDFFont(styledLayout.qrSection.instruction.fontWeight))
-         .fillColor(styledLayout.qrSection.instruction.color)
-         .text(styledLayout.qrSection.instruction.text, headerX, qrSectionY + qrSize + styledLayout.qrSection.instruction.marginTop, { 
-           width: headerWidth, 
-           align: getPDFAlignment(styledLayout.qrSection.instruction.align)
-         });
+      doc.image(qrBuffer, qrX, qrY, { width: qrSize, height: qrSize });
     }
-
-    // FOOTER - Using template structure
-    const footerY = y + height - styledLayout.dimensions.margin - 30;
-    
-    // Clean separator line using template styling
-    doc.moveTo(headerX + 20, footerY - styledLayout.footer.separator.marginBottom)
-       .lineTo(headerX + headerWidth - 20, footerY - styledLayout.footer.separator.marginBottom)
-       .lineWidth(styledLayout.footer.separator.width)
-       .stroke(styledLayout.footer.separator.color);
-
-    // Instructions - Using template styling
-    doc.fontSize(styledLayout.footer.instruction.fontSize)
-       .font(getPDFFont('normal'))
-       .fillColor(styledLayout.footer.instruction.color)
-       .text(styledLayout.footer.instruction.text, headerX, footerY, { 
-         width: headerWidth, 
-         align: getPDFAlignment(styledLayout.footer.instruction.align) 
-       });
-
-    // Branding - Using template styling
-    doc.fontSize(styledLayout.footer.branding.fontSize)
-       .font(getPDFFont('normal'))
-       .fillColor(styledLayout.footer.branding.color)
-       .text(styledLayout.footer.branding.text, headerX, footerY + styledLayout.footer.branding.marginTop, { 
-         width: headerWidth, 
-         align: getPDFAlignment(styledLayout.footer.branding.align) 
-       });
   }
 
   private async generatePNGBadge(

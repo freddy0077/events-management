@@ -60,6 +60,11 @@ export class CreateStaffRegistrationInput {
   @Field({ nullable: true })
   @IsOptional()
   @IsString()
+  zone?: string;
+
+  @Field({ nullable: true })
+  @IsOptional()
+  @IsString()
   receiptNumber?: string;
 
   @Field({ nullable: true })
