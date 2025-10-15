@@ -51,10 +51,6 @@ import { AuditInterceptor } from './interceptors/audit.interceptor';
           path: error.path,
         };
       },
-      // Increase body size limit for GraphQL requests with base64 images
-      bodyParserConfig: {
-        limit: '50mb',
-      },
     }),
     
     // Database
