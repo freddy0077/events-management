@@ -3,6 +3,7 @@ import { ValidationPipe } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { AppModule } from './app.module';
 import { webcrypto } from 'crypto';
+import * as bodyParser from 'body-parser';
 
 // Fix for @nestjs/schedule crypto issue in Node.js 18
 if (!globalThis.crypto) {
@@ -14,6 +15,10 @@ async function bootstrap() {
   
   // Get configuration service
   const configService = app.get(ConfigService);
+  
+  // Increase body size limit to handle base64 encoded images (50MB)
+  app.use(bodyParser.json({ limit: '50mb' }));
+  app.use(bodyParser.urlencoded({ limit: '50mb', extended: true }));
   
   // Enable CORS
   app.enableCors({

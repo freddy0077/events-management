@@ -369,7 +369,7 @@ export class BadgeService {
   ): Promise<void> {
     const { badgeData, qrCodeResult } = badge;
 
-    // SIMPLE BADGE DESIGN - Just Name and QR Code
+    // SIMPLE BADGE DESIGN - Logo, Name and QR Code
     
     // White background
     doc.rect(x, y, width, height)
@@ -378,27 +378,52 @@ export class BadgeService {
     const margin = 20;
     const contentWidth = width - (margin * 2);
     
-    // Participant Name - Large and centered at top
-    const nameY = y + 40;
+    let currentY = y + 20;
+    
+    // Event Logo (if provided) - Centered at top
+    if (badgeData.eventLogo) {
+      try {
+        const logoMaxWidth = 120;
+        const logoMaxHeight = 60;
+        const logoX = x + (width - logoMaxWidth) / 2;
+        
+        doc.image(badgeData.eventLogo, logoX, currentY, {
+          fit: [logoMaxWidth, logoMaxHeight],
+          align: 'center',
+          valign: 'center'
+        });
+        
+        currentY += logoMaxHeight + 20; // Space after logo
+      } catch (error) {
+        console.warn('Failed to load event logo:', error.message);
+        // Continue without logo
+        currentY += 20;
+      }
+    } else {
+      currentY += 20;
+    }
+    
+    // Participant Name - Large and centered
     const nameSize = badgeData.participantName.length > 20 ? 24 : 32;
     
     doc.fontSize(nameSize)
        .font('Helvetica-Bold')
        .fillColor('#000000')
-       .text(badgeData.participantName, x + margin, nameY, { 
+       .text(badgeData.participantName, x + margin, currentY, { 
          width: contentWidth, 
          align: 'center'
        });
 
+    currentY += 70; // Space after name
+
     // QR CODE - Centered below name
     if (qrCodeResult?.base64Image) {
       const qrSize = 150; // Large QR code
-      const qrY = nameY + 80; // Space below name
       const qrX = x + (width - qrSize) / 2; // Center horizontally
 
       // QR Code
       const qrBuffer = Buffer.from(qrCodeResult.base64Image.split(',')[1], 'base64');
-      doc.image(qrBuffer, qrX, qrY, { width: qrSize, height: qrSize });
+      doc.image(qrBuffer, qrX, currentY, { width: qrSize, height: qrSize });
     }
   }
 
