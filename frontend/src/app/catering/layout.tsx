@@ -35,7 +35,7 @@ export default function CateringLayout({
 
   // Redirect if not CATERING_TEAM
   if (user && user.role !== 'CATERING_TEAM') {
-    router.push('/admin')
+    router.push('/unauthorized')
     return null
   }
 

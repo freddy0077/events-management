@@ -25,7 +25,7 @@ export function getRoleDashboardPath(role: UserRole): string {
     case 'FINANCE_TEAM':
       return '/admin/finance'
     case 'CATERING_TEAM':
-      return '/admin/catering'
+      return '/catering/dashboard'
     case 'ADMIN':
       return '/admin'
     default:
@@ -70,7 +70,7 @@ export function getRoleDashboard(role: UserRole): RoleDashboard {
       }
     case 'CATERING_TEAM':
       return {
-        path: '/admin/catering',
+        path: '/catering/dashboard',
         name: 'Catering Team Portal',
         description: 'Verify meal eligibility via QR scans and manage food service'
       }
@@ -130,7 +130,13 @@ export function hasAccessToPath(userRole: UserRole, path: string): boolean {
       '/admin/reports'
     ],
     CATERING_TEAM: [
-      '/admin/catering'
+      '/catering',
+      '/catering/dashboard',
+      '/catering/meals',
+      '/catering/checkin',
+      '/catering/checkin-scanner',
+      '/catering/scanner',
+      '/catering/reports'
     ]
   }
 

@@ -131,6 +131,12 @@ export default function OrganizerStaffPage() {
       case 'ORGANIZER':
         // Backend ORGANIZER role: 6 permissions
         return ['CREATE_REGISTRATION', 'APPROVE_PAYMENT', 'MANAGE_STAFF', 'VIEW_REPORTS', 'SCAN_QR_CODES', 'EXPORT_DATA', 'PRINT_BADGES', 'MANAGE_BADGES']
+      case 'CATERING_TEAM':
+        // Catering team - can scan QR codes for meal verification
+        return ['SCAN_QR_CODES', 'VIEW_REPORTS']
+      case 'FINANCE_TEAM':
+        // Finance team - can view reports and approve payments
+        return ['VIEW_REPORTS', 'APPROVE_PAYMENT', 'EXPORT_DATA']
       default:
         return []
     }
@@ -176,24 +182,20 @@ export default function OrganizerStaffPage() {
           const assignmentRole = newUserData.eventRole
           
           try {
+            // Map system roles to event staff roles
+            // CATERING_TEAM and FINANCE_TEAM are system roles, not event staff roles
+            // They should be assigned as STAFF with specific permissions
+            const eventStaffRole = assignmentRole === 'CATERING_TEAM' || assignmentRole === 'FINANCE_TEAM' 
+              ? 'STAFF' 
+              : assignmentRole
+            
             // Automatically assign the new user to the selected event
             console.log('🔄 Attempting to assign user to event:', {
               eventId: selectedEvent,
               userId: newUserId,
-              role: assignmentRole,
+              systemRole: assignmentRole,
+              eventStaffRole: eventStaffRole,
               permissions: getDefaultPermissions(assignmentRole)
-            })
-            
-            // Validate data before sending
-            console.log('🔍 Data validation check:', {
-              eventIdType: typeof selectedEvent,
-              eventIdLength: selectedEvent?.length,
-              userIdType: typeof newUserId,
-              userIdLength: newUserId?.length,
-              roleType: typeof assignmentRole,
-              roleValue: assignmentRole,
-              permissionsType: typeof getDefaultPermissions(assignmentRole),
-              permissionsValue: getDefaultPermissions(assignmentRole)
             })
             
             const assignResult = await assignStaff({
@@ -201,7 +203,7 @@ export default function OrganizerStaffPage() {
                 input: {
                   eventId: selectedEvent,
                   userId: newUserId,
-                  role: assignmentRole,
+                  role: eventStaffRole,
                   permissions: getDefaultPermissions(assignmentRole)
                 }
               }
@@ -248,6 +250,10 @@ export default function OrganizerStaffPage() {
         return 'bg-cyan-100 text-cyan-800'
       case 'BADGE_PRINTER':
         return 'bg-amber-100 text-amber-800'
+      case 'CATERING_TEAM':
+        return 'bg-pink-100 text-pink-800'
+      case 'FINANCE_TEAM':
+        return 'bg-yellow-100 text-yellow-800'
       default:
         return 'bg-gray-100 text-gray-800'
     }
@@ -690,8 +696,8 @@ export default function OrganizerStaffPage() {
                             <span>{staff.user.email}</span>
                           </div>
                           <div className="flex items-center space-x-2 mt-1">
-                            <Badge className={getRoleColor(staff.role)}>
-                              {staff.role}
+                            <Badge className={getRoleColor(staff.user.role === 'CATERING_TEAM' ? 'CATERING_TEAM' : staff.user.role === 'FINANCE_TEAM' ? 'FINANCE_TEAM' : staff.role)}>
+                              {staff.user.role === 'CATERING_TEAM' ? 'CATERING_TEAM' : staff.user.role === 'FINANCE_TEAM' ? 'FINANCE_TEAM' : staff.role}
                             </Badge>
                             {staff.permissions && staff.permissions.length > 0 && (
                               <span className="text-xs text-gray-500">
