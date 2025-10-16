@@ -14,6 +14,14 @@ import { formatGHS } from '@/lib/utils/currency'
 import { toast } from 'sonner'
 import { useCentralizedQRBadge } from '@/hooks/use-centralized-qr-badge'
 import { badgeTemplates } from '@/components/badges/BadgeTemplates'
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog'
 import { 
   ArrowLeft,
   UserPlus,
@@ -32,7 +40,8 @@ import {
   RefreshCw,
   User,
   ShoppingCart,
-  Eye
+  Eye,
+  PartyPopper
 } from 'lucide-react'
 
 interface RegistrationFormData {
@@ -66,6 +75,8 @@ export default function POSRegistrationPage() {
   const [isPrintingBadge, setIsPrintingBadge] = useState(false)
   const [receiptSearching, setReceiptSearching] = useState(false)
   const [step, setStep] = useState<'details' | 'payment' | 'confirmation'>('details')
+  const [showSuccessModal, setShowSuccessModal] = useState(false)
+  const [lastRegistration, setLastRegistration] = useState<any>(null)
   const nameInputRef = useRef<HTMLInputElement>(null)
 
   // Fetch assigned events
@@ -265,9 +276,8 @@ export default function POSRegistrationPage() {
 
       if ((result.data as any)?.createStaffRegistration?.registration) {
         const registration = (result.data as any).createStaffRegistration.registration
-        toast.success('Registration created successfully!')
-        
-        router.push('/staff/registrations')
+        setLastRegistration(registration)
+        setShowSuccessModal(true)
       }
     } catch (error: any) {
       console.error('Registration creation error:', error)
@@ -275,6 +285,29 @@ export default function POSRegistrationPage() {
     } finally {
       setIsSubmitting(false)
     }
+  }
+
+  const resetForm = () => {
+    setFormData({
+      eventId: formData.eventId, // Keep the same event selected
+      categoryId: '',
+      fullName: '',
+      email: '',
+      phone: '',
+      address: '',
+      zone: '',
+      receiptNumber: '',
+      paymentMethod: 'CASH',
+      notes: ''
+    })
+    setShowSuccessModal(false)
+    setLastRegistration(null)
+    // Focus on name input for next registration
+    setTimeout(() => {
+      if (nameInputRef.current) {
+        nameInputRef.current.focus()
+      }
+    }, 100)
   }
 
   if (eventsLoading) {
@@ -316,7 +349,60 @@ export default function POSRegistrationPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-100 to-slate-200">
+    <>
+      {/* Success Modal */}
+      <Dialog open={showSuccessModal} onOpenChange={setShowSuccessModal}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <div className="flex items-center justify-center mb-4">
+              <div className="rounded-full bg-green-100 p-3">
+                <CheckCircle className="h-12 w-12 text-green-600" />
+              </div>
+            </div>
+            <DialogTitle className="text-center text-2xl">
+              Registration Successful!
+            </DialogTitle>
+            <DialogDescription className="text-center space-y-2">
+              {lastRegistration && (
+                <>
+                  <p className="text-lg font-semibold text-slate-900">
+                    {lastRegistration.fullName}
+                  </p>
+                  <p className="text-sm text-slate-600">
+                    {lastRegistration.email}
+                  </p>
+                  <div className="mt-4 p-3 bg-green-50 rounded-lg border border-green-200">
+                    <p className="text-sm font-medium text-green-800">
+                      Receipt: {formData.receiptNumber}
+                    </p>
+                    <p className="text-sm text-green-700">
+                      Payment Method: {formData.paymentMethod.replace('_', ' ')}
+                    </p>
+                  </div>
+                </>
+              )}
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="flex-col sm:flex-col gap-2">
+            <Button
+              onClick={resetForm}
+              className="w-full bg-orange-600 hover:bg-orange-700 text-white font-semibold h-12 text-base"
+            >
+              <RefreshCw className="h-5 w-5 mr-2" />
+              Register Another Participant
+            </Button>
+            <Button
+              onClick={() => router.push('/staff/registrations')}
+              variant="outline"
+              className="w-full h-12 text-base font-semibold"
+            >
+              View All Registrations
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <div className="min-h-screen bg-gradient-to-br from-slate-100 to-slate-200">
       {/* Modern POS Header Bar - High Contrast for Sunlight */}
       <div className="bg-white shadow-lg border-b-4 border-orange-500 px-8 py-6">
         <div className="flex items-center justify-between">
@@ -775,5 +861,6 @@ export default function POSRegistrationPage() {
         </div>
       </form>
     </div>
+    </>
   )
 }
