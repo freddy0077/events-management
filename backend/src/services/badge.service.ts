@@ -143,33 +143,27 @@ export class BadgeService {
     // A6 dimensions in points: 284 x 383
     const badgeWidth = 284;  // A6 width: 100mm
     const badgeHeight = 383; // A6 height: 135mm
-    const badgesPerRow = 2;  // 2 A6 badges fit horizontally on A4
+    const badgesPerRow = 1;  // 1 badge per row (vertical layout)
     const badgesPerCol = 2;  // 2 A6 badges fit vertically on A4
-    const horizontalSpacing = (doc.page.width - (badgesPerRow * badgeWidth) - 40) / (badgesPerRow - 1);
-    const verticalSpacing = (doc.page.height - (badgesPerCol * badgeHeight) - 40) / (badgesPerCol - 1);
+    const verticalSpacing = (doc.page.height - (badgesPerCol * badgeHeight) - 40) / (badgesPerCol + 1);
     
     let currentRow = 0;
-    let currentCol = 0;
 
     for (const badge of badges) {
-      const x = 20 + (currentCol * (badgeWidth + horizontalSpacing));
-      const y = 20 + (currentRow * (badgeHeight + verticalSpacing));
+      // Center badge horizontally on the page
+      const x = (doc.page.width - badgeWidth) / 2;
+      const y = 20 + verticalSpacing + (currentRow * (badgeHeight + verticalSpacing));
 
-      // Check if we need a new page (max 4 badges per A4 page)
+      // Check if we need a new page (max 2 badges per A4 page)
       if (currentRow >= badgesPerCol) {
         doc.addPage();
         currentRow = 0;
-        currentCol = 0;
       }
 
       // Draw badge content at actual A6 size
       await this.drawBadgeOnPDF(doc, badge, x, y, badgeWidth, badgeHeight);
 
-      currentCol++;
-      if (currentCol >= badgesPerRow) {
-        currentCol = 0;
-        currentRow++;
-      }
+      currentRow++;
     }
 
     doc.end();
