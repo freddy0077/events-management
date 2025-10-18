@@ -76,6 +76,8 @@ export default function POSRegistrationPage() {
   const [receiptSearching, setReceiptSearching] = useState(false)
   const [step, setStep] = useState<'details' | 'payment' | 'confirmation'>('details')
   const [showSuccessModal, setShowSuccessModal] = useState(false)
+  const [showDuplicateModal, setShowDuplicateModal] = useState(false)
+  const [duplicateEmail, setDuplicateEmail] = useState('')
   const [lastRegistration, setLastRegistration] = useState<any>(null)
   const nameInputRef = useRef<HTMLInputElement>(null)
 
@@ -100,7 +102,7 @@ export default function POSRegistrationPage() {
 
 
   // Create registration mutation
-  const [createStaffRegistration] = useCreateStaffRegistration()
+  const [createStaffRegistration, { reset: resetMutation }] = useCreateStaffRegistration()
   
   // Centralized QR and Badge functionality
   const { generateAndPrintBadge, generateAndConvertToPDF, loading: badgeLoading } = useCentralizedQRBadge()
@@ -242,6 +244,12 @@ export default function POSRegistrationPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     
+    // Prevent duplicate submissions
+    if (isSubmitting) {
+      console.warn('⚠️ Form submission already in progress, ignoring duplicate request')
+      return
+    }
+    
     if (!formData.eventId || !formData.categoryId || !formData.fullName || 
         !formData.email || !formData.phone || !formData.address || !formData.zone || !formData.receiptNumber) {
       toast.error('Please fill in all required fields')
@@ -256,38 +264,167 @@ export default function POSRegistrationPage() {
 
     setIsSubmitting(true)
 
-    try {
-      const result = await createStaffRegistration({
-        variables: {
-          input: {
-            eventId: formData.eventId,
-            categoryId: formData.categoryId,
-            fullName: formData.fullName,
-            email: formData.email,
-            phone: formData.phone,
-            address: formData.address,
-            zone: formData.zone,
-            receiptNumber: formData.receiptNumber,
-            specialRequests: formData.notes,
-            paymentMethod: formData.paymentMethod
-          }
-        }
-      })
+    // Retry logic for handling concurrent registration conflicts
+    const maxRetries = 3
+    let attempt = 0
+    let lastError: any = null
 
-      if ((result.data as any)?.createStaffRegistration?.registration) {
-        const registration = (result.data as any).createStaffRegistration.registration
-        setLastRegistration(registration)
-        setShowSuccessModal(true)
+    while (attempt < maxRetries) {
+      try {
+        attempt++
+        console.log(`📝 Registration attempt ${attempt}/${maxRetries}`)
+
+        const result = await createStaffRegistration({
+          variables: {
+            input: {
+              eventId: formData.eventId,
+              categoryId: formData.categoryId,
+              fullName: formData.fullName,
+              email: formData.email,
+              phone: formData.phone,
+              address: formData.address,
+              zone: formData.zone,
+              receiptNumber: formData.receiptNumber,
+              specialRequests: formData.notes,
+              paymentMethod: formData.paymentMethod
+            }
+          },
+          // Force refetch queries to ensure fresh data
+          refetchQueries: ['GetEventRegistrations', 'GetMyEventRegistrations'],
+          // Ensure we don't use cached results
+          fetchPolicy: 'no-cache'
+        })
+
+        if ((result.data as any)?.createStaffRegistration?.registration) {
+          const registration = (result.data as any).createStaffRegistration.registration
+          setLastRegistration(registration)
+          setShowSuccessModal(true)
+          
+          console.log(`✅ Registration successful on attempt ${attempt}`)
+          
+          // Show success toast with retry info if applicable
+          if (attempt > 1) {
+            toast.success(`Registration successful after ${attempt} attempts!`, {
+              duration: 3000,
+              icon: '✅',
+            })
+          } else {
+            toast.success('Registration created successfully!', {
+              duration: 2000,
+              icon: '✅',
+            })
+          }
+          
+          // Reset mutation state to prevent stuck state
+          if (resetMutation) {
+            resetMutation()
+          }
+          
+          // Success - exit retry loop
+          return
+        } else {
+          throw new Error('Registration creation failed - no data returned')
+        }
+      } catch (error: any) {
+        lastError = error
+        console.error(`❌ Registration attempt ${attempt} failed:`, error.message)
+        
+        // Enhanced error detection for Redis-based system
+        const errorMessage = error.message || ''
+        
+        // Duplicate email error (final - no retry)
+        const isDuplicateError = 
+          errorMessage.includes('already registered') ||
+          errorMessage.includes('Participant already registered')
+        
+        // Capacity errors (final - no retry)
+        const isCapacityError = 
+          errorMessage.includes('full capacity') || 
+          errorMessage.includes('at capacity')
+        
+        // Lock acquisition errors (retry-able)
+        const isLockError = 
+          errorMessage.includes('Unable to acquire') || 
+          errorMessage.includes('lock')
+        
+        // Database concurrency errors (retry-able)
+        const isConcurrencyError = 
+          errorMessage.includes('transaction') || 
+          errorMessage.includes('conflict') || 
+          errorMessage.includes('deadlock') ||
+          errorMessage.includes('serialization')
+        
+        // Handle duplicate email (don't retry)
+        if (isDuplicateError) {
+          setDuplicateEmail(formData.email)
+          setShowDuplicateModal(true)
+          break
+        }
+        
+        // Handle capacity errors (don't retry)
+        if (isCapacityError) {
+          toast.error(errorMessage || 'Event or category is at full capacity', {
+            duration: 5000,
+            icon: '🚫',
+          })
+          break
+        }
+        
+        // Handle lock acquisition errors (retry with backoff)
+        if (isLockError && attempt < maxRetries) {
+          const backoffMs = Math.min(1000 * Math.pow(2, attempt - 1), 3000)
+          console.log(`⏳ Retrying in ${backoffMs}ms due to lock contention...`)
+          toast.info(`High traffic - acquiring lock... (attempt ${attempt}/${maxRetries})`, {
+            duration: backoffMs,
+            icon: '🔒',
+          })
+          await new Promise(resolve => setTimeout(resolve, backoffMs))
+          continue
+        }
+        
+        // Handle database concurrency errors (retry with backoff)
+        if (isConcurrencyError && attempt < maxRetries) {
+          const backoffMs = Math.min(1000 * Math.pow(2, attempt - 1), 3000)
+          console.log(`⏳ Retrying in ${backoffMs}ms due to concurrent access...`)
+          toast.info(`Processing... please wait (attempt ${attempt}/${maxRetries})`, {
+            duration: backoffMs,
+            icon: '⏳',
+          })
+          await new Promise(resolve => setTimeout(resolve, backoffMs))
+          continue
+        }
+        
+        // Handle exhausted retries
+        if (attempt >= maxRetries) {
+          toast.error('Registration failed after multiple attempts. Please try again.', {
+            duration: 5000,
+            icon: '❌',
+          })
+        } else {
+          // Other errors (show message and don't retry)
+          toast.error(errorMessage || 'Failed to create registration', {
+            duration: 4000,
+          })
+        }
+        break
       }
-    } catch (error: any) {
-      console.error('Registration creation error:', error)
-      toast.error(error.message || 'Failed to create registration')
-    } finally {
-      setIsSubmitting(false)
     }
+
+    // Reset mutation state even on error to prevent stuck state
+    if (resetMutation) {
+      resetMutation()
+    }
+    
+    setIsSubmitting(false)
   }
 
   const resetForm = () => {
+    // Reset mutation state to clear any cached data
+    if (resetMutation) {
+      resetMutation()
+    }
+    
+    // Reset form data
     setFormData({
       eventId: formData.eventId, // Keep the same event selected
       categoryId: '',
@@ -300,8 +437,12 @@ export default function POSRegistrationPage() {
       paymentMethod: 'CASH',
       notes: ''
     })
+    
+    // Clear modal and registration state
     setShowSuccessModal(false)
     setLastRegistration(null)
+    setIsSubmitting(false)
+    
     // Focus on name input for next registration
     setTimeout(() => {
       if (nameInputRef.current) {
@@ -397,6 +538,65 @@ export default function POSRegistrationPage() {
               className="w-full h-12 text-base font-semibold"
             >
               View All Registrations
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Duplicate Email Modal */}
+      <Dialog open={showDuplicateModal} onOpenChange={setShowDuplicateModal}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <div className="flex items-center justify-center mb-4">
+              <div className="rounded-full bg-amber-100 p-3">
+                <AlertCircle className="h-12 w-12 text-amber-600" />
+              </div>
+            </div>
+            <DialogTitle className="text-center text-2xl">
+              Email Already Registered
+            </DialogTitle>
+            <DialogDescription className="text-center space-y-3">
+              <p className="text-base text-slate-700">
+                A participant with this email is already registered for this event:
+              </p>
+              <div className="p-3 bg-amber-50 rounded-lg border border-amber-200">
+                <p className="text-sm font-semibold text-amber-900">
+                  {duplicateEmail}
+                </p>
+              </div>
+              <p className="text-sm text-slate-600 mt-4">
+                Each email can only be used once per event. Please use a different email address or check existing registrations.
+              </p>
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="flex-col sm:flex-col gap-2">
+            <Button
+              onClick={() => {
+                setShowDuplicateModal(false)
+                // Focus on email input to allow correction
+                setTimeout(() => {
+                  const emailInput = document.querySelector('input[type="email"]') as HTMLInputElement
+                  if (emailInput) {
+                    emailInput.focus()
+                    emailInput.select()
+                  }
+                }, 100)
+              }}
+              className="w-full bg-amber-600 hover:bg-amber-700 text-white font-semibold h-12 text-base"
+            >
+              <Mail className="h-5 w-5 mr-2" />
+              Update Email Address
+            </Button>
+            <Button
+              onClick={() => {
+                setShowDuplicateModal(false)
+                router.push('/staff/registrations')
+              }}
+              variant="outline"
+              className="w-full h-12 text-base font-semibold"
+            >
+              <Search className="h-5 w-5 mr-2" />
+              View Existing Registrations
             </Button>
           </DialogFooter>
         </DialogContent>

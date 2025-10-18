@@ -50,7 +50,7 @@ export default function BatchPrintPage() {
 
   const handleSelectAll = (checked: boolean) => {
     if (checked) {
-      setSelectedBadges(filteredRegistrations.map(r => r.id))
+      setSelectedBadges(filteredRegistrations.map((r: any) => r.id))
     } else {
       setSelectedBadges([])
     }
@@ -60,7 +60,7 @@ export default function BatchPrintPage() {
     if (checked) {
       setSelectedBadges([...selectedBadges, id])
     } else {
-      setSelectedBadges(selectedBadges.filter(b => b !== id))
+      setSelectedBadges(selectedBadges.filter((b: string) => b !== id))
     }
   }
 
@@ -88,7 +88,7 @@ export default function BatchPrintPage() {
       const registrationIds = withQR.map((r: any) => r.id)
       const result = await generateBadgeSheet({
         variables: { registrationIds }
-      })
+      }) as any
       
       // Download the badge sheet PDF
       const base64Data = result.data.generateBadgeSheet
@@ -128,7 +128,7 @@ export default function BatchPrintPage() {
       const registrationIds = withQR.map((r: any) => r.id)
       const result = await generateBadgeSheet({
         variables: { registrationIds }
-      })
+      }) as any
       
       // Download the badge sheet PDF
       const base64Data = result.data.generateBadgeSheet

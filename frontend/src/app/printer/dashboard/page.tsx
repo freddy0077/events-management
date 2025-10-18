@@ -166,10 +166,9 @@ export default function PrinterDashboardPage() {
               <div className="text-2xl font-bold">{stat.value}</div>
               <p className={`text-xs ${
                 stat.changeType === 'positive' ? 'text-green-600' :
-                stat.changeType === 'negative' ? 'text-red-600' :
                 'text-gray-600'
               }`}>
-                {stat.change} from yesterday
+                {stat.change}
               </p>
             </CardContent>
           </Card>

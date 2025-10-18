@@ -73,7 +73,7 @@ export default function StaffEventsPage() {
       maxCapacity: event.maxCapacity,
       isActive: event.isActive,
       endDate: event.endDate,
-      registrationIds: eventRegistrations.map(r => r.id)
+      registrationIds: eventRegistrations.map((r: any) => r.id)
     })
     
     // Calculate payment stats based on transactions

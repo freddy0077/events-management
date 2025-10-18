@@ -62,7 +62,7 @@ export default function PrintBadgesPage() {
       const result = await generateBadge({
         variables: { registrationId, format: 'pdf' },
         refetchQueries: [{ query: GET_EVENT_REGISTRATIONS, variables: { eventId: selectedEvent } }]
-      })
+      }) as any
       
       // Download the badge PDF
       const base64Data = result.data.generateBadge
@@ -94,7 +94,7 @@ export default function PrintBadgesPage() {
       const registrationIds = withQR.map((r: any) => r.id)
       const result = await generateBadgeSheet({
         variables: { registrationIds }
-      })
+      }) as any
       
       // Download the badge sheet PDF
       const base64Data = result.data.generateBadgeSheet

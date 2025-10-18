@@ -173,25 +173,24 @@ export function OrganizersStep({ formData, setFormData, errors, setErrors }: Ste
       toast.error(validationErrors[0])
       return
     }
-
     setIsCreatingOrganizer(true)
     try {
       const result = await registerUser({
         variables: {
           input: {
+            email: newOrganizerForm.email.trim(),
             firstName: newOrganizerForm.firstName.trim(),
             lastName: newOrganizerForm.lastName.trim(),
-            email: newOrganizerForm.email.trim(),
-            password: newOrganizerForm.password,
+            password: newOrganizerForm.password.trim(),
             role: 'EVENT_ORGANIZER',
             mustChangePassword: true
           }
         }
-      })
+      }) as any
 
       if (result.data?.registerUser?.success && result.data?.registerUser?.user) {
         const newUser = result.data.registerUser.user
-        toast.success(`New organizer "${newOrganizerForm.firstName} ${newOrganizerForm.lastName}" created and assigned successfully!`)
+        toast.success(`New organizer "${newOrganizerForm.firstName.trim()} ${newOrganizerForm.lastName.trim()}" created and assigned successfully!`)
         
         // Immediately add the new organizer to the assigned list
         setFormData(prev => ({

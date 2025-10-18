@@ -101,7 +101,7 @@ export default function OrganizerReportsPage() {
 
   const generateRegistrationReport = (event: any, registrations: any[]) => {
     const headers = ['Name', 'Email', 'Phone', 'Status', 'Category', 'Registration Date', 'Payment Status']
-    const rows = registrations.map(reg => [
+    const rows = registrations.map((reg: any) => [
       `"${reg.firstName} ${reg.lastName}"`,
       reg.email,
       reg.phone || '',
@@ -110,19 +110,19 @@ export default function OrganizerReportsPage() {
       format(new Date(reg.createdAt), 'yyyy-MM-dd HH:mm'),
       reg.transactions?.[0]?.status || 'N/A'
     ])
-    return [headers.join(','), ...rows.map(row => row.join(','))].join('\n')
+    return [headers.join(','), ...rows.map((row: any) => row.join(','))].join('\n')
   }
 
   const generateAttendanceReport = (event: any, registrations: any[]) => {
     const headers = ['Name', 'Email', 'Check-in Status', 'Check-in Time', 'QR Code Scanned']
-    const rows = registrations.map(reg => [
+    const rows = registrations.map((reg: any) => [
       `"${reg.firstName} ${reg.lastName}"`,
       reg.email,
       reg.checkedIn ? 'Checked In' : 'Not Checked In',
       reg.checkedInAt ? format(new Date(reg.checkedInAt), 'yyyy-MM-dd HH:mm') : '',
       reg.qrCodeScanned ? 'Yes' : 'No'
     ])
-    return [headers.join(','), ...rows.map(row => row.join(','))].join('\n')
+    return [headers.join(','), ...rows.map((row: any) => row.join(','))].join('\n')
   }
 
   const generateAnalyticsReport = (event: any, registrations: any[]) => {
@@ -140,7 +140,7 @@ export default function OrganizerReportsPage() {
       ['Check-in Rate', `${totalRegistrations > 0 ? ((checkedInCount / totalRegistrations) * 100).toFixed(1) : 0}%`],
       ['Approval Rate', `${totalRegistrations > 0 ? ((approvedRegistrations / totalRegistrations) * 100).toFixed(1) : 0}%`]
     ]
-    return [headers.join(','), ...rows.map(row => row.join(','))].join('\n')
+    return [headers.join(','), ...rows.map((row: any) => row.join(','))].join('\n')
   }
 
   const generateFinancialReport = (event: any, registrations: any[]) => {
@@ -155,7 +155,7 @@ export default function OrganizerReportsPage() {
         transaction.receiptNumber || ''
       ])
     )
-    return [headers.join(','), ...rows.map(row => row.join(','))].join('\n')
+    return [headers.join(','), ...rows.map((row: any) => row.join(','))].join('\n')
   }
 
   if (loading) {

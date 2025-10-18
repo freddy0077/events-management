@@ -72,9 +72,9 @@ export default function StaffDashboard() {
   
   // Get recent registrations (last 3)
   const recentRegistrations = [...registrations]
-    .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+    .sort((a: any, b: any) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
     .slice(0, 3)
-    .map(reg => ({
+    .map((reg: any) => ({
       id: reg.id,
       participantName: reg.fullName || `${reg.firstName} ${reg.lastName}`,
       eventName: reg.event?.name || 'Unknown Event',

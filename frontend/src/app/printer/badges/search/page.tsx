@@ -29,10 +29,23 @@ export default function SearchBadgesPage() {
   
   console.log('Current search results state:', searchResults)
 
-  const [searchRegistrations, { loading: searching }] = useLazyQuery(SEARCH_REGISTRATIONS, {
-    onCompleted: (data) => {
+  const [searchRegistrations, { loading: searching }] = useLazyQuery(SEARCH_REGISTRATIONS)
+
+  const [generateBadge, { loading: printingBadge }] = useMutation(GENERATE_BADGE)
+
+  const handleSearch = async () => {
+    if (!searchQuery.trim()) {
+      toast.error('Please enter a search term')
+      return
+    }
+
+    try {
+      const { data } = await searchRegistrations({
+        variables: { searchTerm: searchQuery }
+      })
+      
       console.log('Search completed:', data)
-      const results = data.searchRegistrations || []
+      const results = (data as any)?.searchRegistrations || []
       console.log('Setting search results:', results)
       setSearchResults(results)
       
@@ -50,25 +63,11 @@ export default function SearchBadgesPage() {
           toast.success(`Found ${results.length} participant(s)`)
         }
       }
-    },
-    onError: (error) => {
+    } catch (error: any) {
       console.error('Search error:', error)
       toast.error(error.message || 'Search failed')
       setSearchResults([])
     }
-  })
-
-  const [generateBadge, { loading: printingBadge }] = useMutation(GENERATE_BADGE)
-
-  const handleSearch = async () => {
-    if (!searchQuery.trim()) {
-      toast.error('Please enter a search term')
-      return
-    }
-
-    searchRegistrations({
-      variables: { searchTerm: searchQuery }
-    })
   }
 
   const handlePrintBadge = async (registrationId: string, hasQRCode: boolean) => {
@@ -80,7 +79,7 @@ export default function SearchBadgesPage() {
     try {
       const result = await generateBadge({
         variables: { registrationId, format: 'pdf' }
-      })
+      }) as any
       
       // Download the badge PDF
       const base64Data = result.data.generateBadge

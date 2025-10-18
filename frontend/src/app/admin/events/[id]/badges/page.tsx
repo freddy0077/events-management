@@ -79,7 +79,7 @@ export default function BulkBadgePrintingPage() {
     if (selectedRegistrations.length === filteredRegistrations.length) {
       setSelectedRegistrations([])
     } else {
-      setSelectedRegistrations(filteredRegistrations.map(reg => reg.id))
+      setSelectedRegistrations(filteredRegistrations.map((reg: any) => reg.id))
     }
   }
 
@@ -585,8 +585,8 @@ export default function BulkBadgePrintingPage() {
         {selectedRegistrations.length > 0 && (
           <BadgeSheetGenerator
             badges={filteredRegistrations
-              .filter(reg => selectedRegistrations.includes(reg.id))
-              .map(reg => {
+              .filter((reg: any) => selectedRegistrations.includes(reg.id))
+              .map((reg: any) => {
                 const badgeData: BadgeData = {
                   firstName: reg.participant?.firstName || '',
                   lastName: reg.participant?.lastName || '',

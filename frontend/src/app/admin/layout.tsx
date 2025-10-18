@@ -225,10 +225,10 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
     }
 
     // Filter sections based on user role
-    return sections.map(section => ({
+    return sections.map((section: any) => ({
       ...section,
-      items: section.items.filter(item => userRole && item.roles.includes(userRole))
-    })).filter(section => section.items.length > 0)
+      items: section.items.filter((item: any) => userRole && item.roles.includes(userRole))
+    })).filter((section: any) => section.items.length > 0)
   }
 
   const menuSections = getMenuSections()
@@ -299,13 +299,13 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
 
           {/* Navigation Sections */}
           <nav className="flex-1 px-4 py-4 space-y-6 overflow-y-auto">
-            {menuSections.map((section, sectionIndex) => (
+            {menuSections.map((section: any, sectionIndex: number) => (
               <div key={sectionIndex}>
                 <h3 className="px-3 text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">
                   {section.title}
                 </h3>
                 <div className="space-y-1">
-                  {section.items.map((item) => {
+                  {section.items.map((item: any) => {
                     const IconComponent = item.icon
                     const isActive = pathname === item.href || pathname.startsWith(item.href + '/')
                     

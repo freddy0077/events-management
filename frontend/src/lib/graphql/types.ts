@@ -48,6 +48,7 @@ export interface Event {
   latePaymentFee?: number
   refundPolicy?: string
   badgeTemplateId?: string
+  logoUrl?: string
   isActive: boolean
   status?: string
   totalRegistrations?: number
@@ -74,6 +75,8 @@ export interface Category {
   eventId?: string
   event?: Event
   registrations?: Registration[]
+  currentCount?: number
+  isActive?: boolean
   createdAt?: string
   updatedAt?: string
 }
@@ -271,13 +274,15 @@ export interface UpdateCategoryInput {
 
 export interface CreateMealInput {
   name: string
-  sessionTime: string
+  startTime: string
+  endTime: string
   description?: string
 }
 
 export interface UpdateMealInput {
   name?: string
-  sessionTime?: string
+  startTime?: string
+  endTime?: string
   description?: string
 }
 

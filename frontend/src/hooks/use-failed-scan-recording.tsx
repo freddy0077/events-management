@@ -43,7 +43,7 @@ export const useFailedScanRecording = (): UseFailedScanRecordingReturn => {
             notes: input.notes,
           },
         },
-      });
+      }) as any;
 
       if (data?.recordFailedScan?.success) {
         // Silent success - we don't want to show toast for failed scan recording

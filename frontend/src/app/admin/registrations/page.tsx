@@ -161,8 +161,8 @@ export default function AdminRegistrationsPage() {
 
   // Get unique events for filter
   const uniqueEvents = useMemo(() => {
-    const events = registrations.map(r => r.event)
-    return events.filter((event, index, self) => 
+    const events = registrations.map((r: any) => r.event)
+    return events.filter((event: any, index: number, self: any) => 
       index === self.findIndex((e: any) => e?.id === event?.id)
     )
   }, [registrations])
@@ -179,7 +179,7 @@ export default function AdminRegistrationsPage() {
     if (selectedRegistrations.length === paginatedRegistrations.length) {
       setSelectedRegistrations([])
     } else {
-      setSelectedRegistrations(paginatedRegistrations.map(r => r.id))
+      setSelectedRegistrations(paginatedRegistrations.map((r: any) => r.id))
     }
   }
 
@@ -193,7 +193,7 @@ export default function AdminRegistrationsPage() {
 
   // Export functions
   const handleExportCSV = () => {
-    const csvData = filteredAndSortedRegistrations.map(reg => ({
+    const csvData = filteredAndSortedRegistrations.map((reg: any) => ({
       'Registration ID': reg.id,
       'First Name': reg.firstName,
       'Last Name': reg.lastName,
@@ -212,7 +212,7 @@ export default function AdminRegistrationsPage() {
 
     const csv = [
       Object.keys(csvData[0]).join(','),
-      ...csvData.map(row => Object.values(row).join(','))
+      ...csvData.map((row: any) => Object.values(row).join(','))
     ].join('\n')
 
     const blob = new Blob([csv], { type: 'text/csv' })
@@ -375,7 +375,7 @@ export default function AdminRegistrationsPage() {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">All Events</SelectItem>
-                  {uniqueEvents.map(event => (
+                  {uniqueEvents.map((event: any) => (
                     <SelectItem key={event?.id || ''} value={event?.id || ''}>
                       {event?.name || 'Unknown Event'}
                     </SelectItem>
@@ -619,7 +619,7 @@ export default function AdminRegistrationsPage() {
                       >
                         Previous
                       </Button>
-                      {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
+                      {Array.from({ length: totalPages }, (_, i) => i + 1).map((page: number) => (
                         <Button
                           key={page}
                           variant={currentPage === page ? "default" : "outline"}

@@ -58,9 +58,27 @@ export default function PrinterScannerPage() {
   const { data: eventsData, loading: eventsLoading } = useQuery(GET_MY_ASSIGNED_EVENTS)
   const events = (eventsData as any)?.myAssignedEvents || []
 
-  const [getRegistrationByQR, { loading: scanning }] = useLazyQuery(GET_REGISTRATION_BY_QR, {
-    onCompleted: (data) => {
-      const registration = data.registrationByQRCode
+  const [getRegistrationByQR, { loading: scanning }] = useLazyQuery(GET_REGISTRATION_BY_QR)
+
+  const [generateBadge, { loading: printingBadge }] = useMutation(GENERATE_BADGE)
+
+  const handleManualScan = async () => {
+    if (!manualCode.trim()) {
+      toast.error('Please enter a QR code or registration ID')
+      return
+    }
+
+    if (!selectedEvent) {
+      toast.error('Please select an event first')
+      return
+    }
+
+    try {
+      const { data } = await getRegistrationByQR({
+        variables: { qrCode: manualCode }
+      })
+      
+      const registration = (data as any)?.registrationByQRCode
       const result = {
         success: true,
         participant: {
@@ -83,8 +101,7 @@ export default function PrinterScannerPage() {
       setScanHistory([result, ...scanHistory])
       toast.success('Badge verified successfully!')
       setManualCode('')
-    },
-    onError: (error) => {
+    } catch (error: any) {
       const errorResult = {
         success: false,
         error: error.message || 'Invalid QR code',
@@ -94,31 +111,13 @@ export default function PrinterScannerPage() {
       setScanHistory([errorResult, ...scanHistory])
       toast.error('Invalid QR code or registration not found')
     }
-  })
-
-  const [generateBadge, { loading: printingBadge }] = useMutation(GENERATE_BADGE)
-
-  const handleManualScan = async () => {
-    if (!manualCode.trim()) {
-      toast.error('Please enter a QR code or registration ID')
-      return
-    }
-
-    if (!selectedEvent) {
-      toast.error('Please select an event first')
-      return
-    }
-
-    getRegistrationByQR({
-      variables: { qrCode: manualCode }
-    })
   }
 
   const handlePrintBadge = async (registrationId: string) => {
     try {
       const result = await generateBadge({
         variables: { registrationId, format: 'pdf' }
-      })
+      }) as any
       
       // Download the badge PDF
       const base64Data = result.data.generateBadge

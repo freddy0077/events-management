@@ -62,36 +62,9 @@ import { useEvents, useDeleteEvent } from '@/lib/graphql/hooks'
 import { ModernHeader } from '@/components/ui/modern-header'
 import { AnimatedStatsGrid } from '@/components/ui/animated-stats-grid'
 import { ModernCard, ModernCardHeader } from '@/components/ui/modern-card'
+import { Event } from '@/lib/graphql/types'
 
 // Types
-interface Event {
-  id: string
-  name: string
-  slug: string
-  date: string
-  endDate?: string
-  venue: string
-  description?: string
-  maxCapacity: number
-  logoUrl?: string
-  isActive: boolean
-  status: 'DRAFT' | 'ACTIVE' | 'COMPLETED' | 'CANCELLED'
-  totalRegistrations: number
-  approvedRegistrations: number
-  paidRegistrations?: number
-  pendingRegistrations?: number
-  createdAt: string
-  updatedAt: string
-  categories: Array<{
-    id: string
-    name: string
-    price: number
-    maxCapacity: number
-    currentCount?: number
-    description?: string
-    isActive: boolean
-  }>
-}
 
 interface EventFilters {
   search: string
@@ -132,10 +105,10 @@ export default function AdminEventsPage() {
     const completedEvents = events.filter(e => e.status === 'COMPLETED').length
     const totalRegistrations = events.reduce((sum, e) => sum + (e.totalRegistrations || 0), 0)
     const totalRevenue = events.reduce((sum, e) => {
-      return sum + e.categories.reduce((catSum, cat) => catSum + (cat.price * (cat.currentCount || 0)), 0)
+      return sum + (e.categories || []).reduce((catSum, cat) => catSum + (cat.price * (cat.currentCount || 0)), 0)
     }, 0)
     const avgCapacityUtilization = events.length > 0 
-      ? events.reduce((sum, e) => sum + ((e.totalRegistrations || 0) / e.maxCapacity * 100), 0) / events.length 
+      ? events.reduce((sum, e) => sum + ((e.totalRegistrations || 0) / (e.maxCapacity || 1) * 100), 0) / events.length 
       : 0
 
     return {
@@ -206,8 +179,8 @@ export default function AdminEventsPage() {
           bValue = b.totalRegistrations || 0
           break
         case 'capacity':
-          aValue = a.maxCapacity
-          bValue = b.maxCapacity
+          aValue = a.maxCapacity || 0
+          bValue = b.maxCapacity || 0
           break
         case 'created':
           aValue = new Date(a.createdAt)
@@ -242,7 +215,7 @@ export default function AdminEventsPage() {
   }, [])
 
   const handleSelectAll = useCallback((checked: boolean) => {
-    setSelectedEvents(checked ? filteredEvents.map(e => e.id) : [])
+    setSelectedEvents(checked ? filteredEvents.map((e: any) => e.id) : [])
   }, [filteredEvents])
 
   const handleDeleteEvent = useCallback(async (event: Event) => {
@@ -286,13 +259,13 @@ export default function AdminEventsPage() {
       name: `${event.name} (Copy)`,
       venue: event.venue,
       description: event.description || '',
-      maxCapacity: event.maxCapacity.toString()
+      maxCapacity: (event.maxCapacity || 0).toString()
     })
     router.push(`/admin/events/create?${queryParams.toString()}`)
   }, [router])
 
   // Get status badge variant and color
-  const getStatusBadge = (status: string, isActive: boolean) => {
+  const getStatusBadge = (status: string | undefined, isActive: boolean) => {
     if (!isActive) {
       return { variant: 'secondary' as const, color: 'text-gray-600', icon: XCircle }
     }
@@ -313,7 +286,7 @@ export default function AdminEventsPage() {
 
   // Calculate capacity utilization percentage
   const getCapacityUtilization = (event: Event) => {
-    return event.maxCapacity > 0 ? Math.round((event.totalRegistrations || 0) / event.maxCapacity * 100) : 0
+    return (event.maxCapacity || 0) > 0 ? Math.round((event.totalRegistrations || 0) / (event.maxCapacity || 1) * 100) : 0
   }
 
   // Access control
@@ -588,7 +561,7 @@ export default function AdminEventsPage() {
                               <div className="flex items-center gap-2 text-sm text-gray-600">
                                 <Users className="h-4 w-4" />
                                 <span>
-                                  {event.totalRegistrations || 0}/{event.maxCapacity}
+                                  {event.totalRegistrations || 0}/{event.maxCapacity || 0}
                                   <span className="ml-1 text-xs">
                                     ({capacityUtilization}%)
                                   </span>
@@ -600,7 +573,7 @@ export default function AdminEventsPage() {
                                 <DollarSign className="h-4 w-4" />
                                 <span>
                                   {formatCurrency(
-                                    event.categories.reduce((sum, cat) => 
+                                    (event.categories || []).reduce((sum, cat) => 
                                       sum + (cat.price * (cat.currentCount || 0)), 0
                                     )
                                   )}
@@ -610,14 +583,14 @@ export default function AdminEventsPage() {
 
                             {/* Categories */}
                             <div className="flex flex-wrap gap-2 mb-3">
-                              {event.categories.slice(0, 3).map((category) => (
+                              {(event.categories || []).slice(0, 3).map((category) => (
                                 <Badge key={category.id} variant="outline" className="text-xs">
                                   {category.name} - {formatCurrency(category.price)}
                                 </Badge>
                               ))}
-                              {event.categories.length > 3 && (
+                              {(event.categories || []).length > 3 && (
                                 <Badge variant="outline" className="text-xs">
-                                  +{event.categories.length - 3} more
+                                  +{(event.categories || []).length - 3} more
                                 </Badge>
                               )}
                             </div>

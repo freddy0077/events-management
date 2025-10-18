@@ -317,7 +317,7 @@ export function MealSessionsStep({ formData, setFormData, errors, setErrors }: S
       const updatedSession = { ...session, [field]: value }
       
       // Regular session update
-      const updatedSessions = prev.mealSessions.map(s => 
+      const updatedSessions = prev.mealSessions.map((s: any) => 
         s.id === id ? updatedSession : s
       )
       
@@ -375,7 +375,7 @@ export function MealSessionsStep({ formData, setFormData, errors, setErrors }: S
       // Just update the session to mark it as recurring
       setFormData(prev => ({
         ...prev,
-        mealSessions: prev.mealSessions.map(s => 
+        mealSessions: prev.mealSessions.map((s: any) => 
           s.id === sessionId ? {
             ...s,
             isRecurring: true,
@@ -387,7 +387,7 @@ export function MealSessionsStep({ formData, setFormData, errors, setErrors }: S
       // Disable recurring
       setFormData(prev => ({
         ...prev,
-        mealSessions: prev.mealSessions.map(s => 
+        mealSessions: prev.mealSessions.map((s: any) => 
           s.id === sessionId ? {
             ...s,
             isRecurring: false,
@@ -403,7 +403,7 @@ export function MealSessionsStep({ formData, setFormData, errors, setErrors }: S
   const updateRecurringPattern = (sessionId: string, pattern: 'daily' | 'custom') => {
     setFormData(prev => ({
       ...prev,
-      mealSessions: prev.mealSessions.map(s => 
+      mealSessions: prev.mealSessions.map((s: any) => 
         s.id === sessionId ? {
           ...s,
           recurringPattern: pattern,
@@ -417,7 +417,7 @@ export function MealSessionsStep({ formData, setFormData, errors, setErrors }: S
   const updateRecurringDays = (sessionId: string, days: string[]) => {
     setFormData(prev => ({
       ...prev,
-      mealSessions: prev.mealSessions.map(s => 
+      mealSessions: prev.mealSessions.map((s: any) => 
         s.id === sessionId ? {
           ...s,
           recurringDays: days

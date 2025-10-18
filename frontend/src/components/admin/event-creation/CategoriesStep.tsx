@@ -31,7 +31,7 @@ export function CategoriesStep({ formData, setFormData, errors, setErrors }: Ste
 
   const updateCategory = (id: string, field: keyof EventCategory, value: string | number) => {
     setFormData(prev => {
-      const updatedCategories = prev.categories.map(cat => 
+      const updatedCategories = prev.categories.map((cat: any) => 
         cat.id === id ? { ...cat, [field]: value } : cat
       )
       
@@ -289,7 +289,7 @@ export function CategoriesStep({ formData, setFormData, errors, setErrors }: Ste
               </div>
               <div className="text-center p-3 bg-green-50 rounded-lg">
                 <div className="text-2xl font-bold text-green-600">
-                  GHS {Math.min(...formData.categories.map(cat => cat.price))} - {Math.max(...formData.categories.map(cat => cat.price))}
+                  GHS {Math.min(...formData.categories.map((cat: any) => cat.price))} - {Math.max(...formData.categories.map((cat: any) => cat.price))}
                 </div>
                 <div className="text-green-700">Price Range</div>
               </div>

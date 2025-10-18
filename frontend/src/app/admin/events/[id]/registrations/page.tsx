@@ -118,9 +118,9 @@ export default function EventRegistrationsPage() {
 
   // Get unique categories for filter
   const uniqueCategories = useMemo(() => {
-    const categories = registrations.map(r => r.category).filter(Boolean)
-    return categories.filter((category, index, self) => 
-      index === self.findIndex(c => c?.id === category?.id)
+    const categories = registrations.map((r: any) => r.category).filter(Boolean)
+    return categories.filter((category: any, index: number, self: any) => 
+      index === self.findIndex((c: any) => c?.id === category?.id)
     )
   }, [registrations])
 
@@ -136,7 +136,7 @@ export default function EventRegistrationsPage() {
     if (selectedRegistrations.length === paginatedRegistrations.length) {
       setSelectedRegistrations([])
     } else {
-      setSelectedRegistrations(paginatedRegistrations.map(r => r.id))
+      setSelectedRegistrations(paginatedRegistrations.map((r: any) => r.id))
     }
   }
 
@@ -149,7 +149,7 @@ export default function EventRegistrationsPage() {
   }
 
   const handleExportCSV = () => {
-    const csvData = filteredAndSortedRegistrations.map(reg => ({
+    const csvData = filteredAndSortedRegistrations.map((reg: any) => ({
       'Name': `${reg.firstName} ${reg.lastName}`,
       'Email': reg.email,
       'Phone': reg.phone || '',
@@ -163,7 +163,7 @@ export default function EventRegistrationsPage() {
 
     const csv = [
       Object.keys(csvData[0]).join(','),
-      ...csvData.map(row => Object.values(row).join(','))
+      ...csvData.map((row: any) => Object.values(row).join(','))
     ].join('\n')
 
     const blob = new Blob([csv], { type: 'text/csv' })
@@ -345,7 +345,7 @@ export default function EventRegistrationsPage() {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">All Categories</SelectItem>
-                  {uniqueCategories.map(category => (
+                  {uniqueCategories.map((category: any) => (
                     <SelectItem key={category?.id} value={category?.id || ''}>
                       {category?.name}
                     </SelectItem>
@@ -554,7 +554,7 @@ export default function EventRegistrationsPage() {
                       >
                         Previous
                       </Button>
-                      {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
+                      {Array.from({ length: totalPages }, (_, i) => i + 1).map((page: number) => (
                         <Button
                           key={page}
                           variant={currentPage === page ? "default" : "outline"}

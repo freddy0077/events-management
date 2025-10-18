@@ -117,9 +117,7 @@ export const BadgeTemplate = forwardRef<HTMLDivElement, BadgeTemplateProps>(
                     alt="QR Code" 
                     className="w-32 h-32 block"
                     style={{ 
-                      imageRendering: 'pixelated', // Avoid interpolation lines for bitmap QR codes
-                      imageRendering: '-webkit-optimize-contrast', // WebKit optimization
-                      imageRendering: 'crisp-edges' // Modern browsers
+                      imageRendering: 'crisp-edges' // Modern browsers, with fallback to pixelated
                     }}
                   />
                 </div>

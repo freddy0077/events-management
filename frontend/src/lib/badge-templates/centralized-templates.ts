@@ -108,13 +108,14 @@ export interface BadgeTemplateLayout {
     }
   }
   
-  // QR Code Section (positioned beside event name)
+  // QR Code Section (positioned beside event name or as separate section)
   qrSection: {
     position: 'beside-event' | 'separate-section'
     size: number
     frameColor: string
     frameWidth: number
-    marginLeft: number
+    marginLeft?: number  // Only used when position is 'beside-event'
+    marginTop?: number   // Only used when position is 'separate-section'
     instruction: {
       marginTop: number
       fontSize: number

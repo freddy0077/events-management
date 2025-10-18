@@ -155,7 +155,7 @@ export default function AdminEventEditPage() {
   const availableOrganizers = useMemo(() => {
     if (!availableManagers) return []
     // Filter out already assigned organizers
-    const assignedIds = assignedOrganizers.map(org => org.id)
+    const assignedIds = assignedOrganizers.map((org: any) => org.id)
     return availableManagers.filter((manager: any) => !assignedIds.includes(manager.id))
   }, [availableManagers, assignedOrganizers])
 
@@ -186,7 +186,7 @@ export default function AdminEventEditPage() {
 
   // Update category
   const updateCategory = (id: string, field: string, value: any) => {
-    setCategories(prev => prev.map(cat => 
+    setCategories(prev => prev.map((cat: any) => 
       cat.id === id ? { ...cat, [field]: value } : cat
     ))
   }
@@ -209,7 +209,7 @@ export default function AdminEventEditPage() {
 
   // Update meal session
   const updateMealSession = (id: string, field: string, value: any) => {
-    setMealSessions(prev => prev.map(meal => 
+    setMealSessions(prev => prev.map((meal: any) => 
       meal.id === id ? { ...meal, [field]: value } : meal
     ))
   }
@@ -282,11 +282,11 @@ export default function AdminEventEditPage() {
             endDate: formData.endDate ? new Date(formData.endDate).toISOString() : undefined,
             registrationDeadline: formData.registrationDeadline ? new Date(formData.registrationDeadline).toISOString() : undefined,
             paymentDeadline: formData.paymentDeadline ? new Date(formData.paymentDeadline).toISOString() : undefined,
-            categories: categories.map(cat => ({
+            categories: categories.map((cat: any) => ({
               ...cat,
               id: cat.id.startsWith('temp-') ? undefined : cat.id
             })),
-            meals: mealSessions.map(meal => ({
+            meals: mealSessions.map((meal: any) => ({
               ...meal,
               id: meal.id.startsWith('temp-') ? undefined : meal.id
             }))

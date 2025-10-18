@@ -101,7 +101,7 @@ export default function StaffManagementPage() {
     if (selectedStaff.length === filteredStaff.length) {
       setSelectedStaff([])
     } else {
-      setSelectedStaff(filteredStaff.map(s => s.id))
+      setSelectedStaff(filteredStaff.map((s: any) => s.id))
     }
   }
 

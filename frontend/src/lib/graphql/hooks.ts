@@ -207,7 +207,16 @@ export const useCreateRegistration = () => {
 
 export const useCreateStaffRegistration = () => {
   return useMutation(CREATE_STAFF_REGISTRATION, {
-    errorPolicy: 'all'
+    errorPolicy: 'all',
+    // Prevent caching issues by not updating cache automatically
+    fetchPolicy: 'no-cache',
+    // Reset the mutation state after completion
+    onCompleted: () => {
+      console.log('✅ Staff registration mutation completed successfully')
+    },
+    onError: (error) => {
+      console.error('❌ Staff registration mutation error:', error)
+    }
   })
 }
 

@@ -67,7 +67,7 @@ export default function StaffScannerPage() {
   }))
   
   // Transform recent meal attendances into scan records - data comes directly from backend with all relations
-  const successfulScans = recentMealAttendances.map(attendance => {
+  const successfulScans = recentMealAttendances.map((attendance: any) => {
     const registration = attendance.registration
     
     return {
@@ -94,10 +94,10 @@ export default function StaffScannerPage() {
     const failedScans = failedScansData?.getFailedScans?.logs || []
     
     return failedScans
-      .map(log => {
+      .map((log: any) => {
         const details = log.details || {}
-        const selectedEventData = events.find(e => e.id === log.eventId)
-        const selectedMealData = mealSessions.find(m => m.id === details.mealId)
+        const selectedEventData = events.find((e: any) => e.id === log.eventId)
+        const selectedMealData = mealSessions.find((m: any) => m.id === details.mealId)
         
         return {
           id: log.id,

@@ -583,7 +583,7 @@ export default function CreateEventPage() {
         refundPolicy: formData.refundPolicy as 'full' | 'partial' | 'deposit' | 'none',
         badgeTemplateId: formData.badgeTemplateId,
         logoUrl: formData.logoUrl || undefined,
-        categories: formData.categories.map(cat => ({
+        categories: formData.categories.map((cat: any) => ({
           name: cat.name,
           price: cat.price,
           maxCapacity: cat.maxCapacity,
@@ -591,9 +591,9 @@ export default function CreateEventPage() {
         })),
         meals: formData.mealSessions
           .filter(meal => meal.name && meal.beginTime && meal.endTime) // Only include meals with valid data
-          .map(meal => ({
+          .map((meal: any) => ({
             name: meal.name,
-            beginTime: meal.beginTime,
+            startTime: meal.beginTime,
             endTime: meal.endTime,
             description: meal.description
           }))
@@ -602,7 +602,7 @@ export default function CreateEventPage() {
       // Create event using GraphQL
       const result = await createEvent({
         variables: { input: eventInput }
-      })
+      }) as any
 
       if (result.data?.createEvent) {
         const createdEvent = result.data.createEvent
