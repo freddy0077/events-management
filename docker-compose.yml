@@ -26,11 +26,16 @@ services:
       DATABASE_URL: postgresql://${DB_USER:-events_user}:${DB_PASSWORD:-events_pass}@postgres:5432/${DB_NAME:-events_db}
       JWT_SECRET: ${JWT_SECRET:-your-secret-key-change-in-production}
       REDIS_URL: redis://redis:6379
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      REDIS_PASSWORD: ""
+      REDIS_DB: 0
+      USE_REDIS_LOCKS: "true"  # Enable Redis distributed locks (Phase 1)
       NODE_ENV: ${NODE_ENV:-development}
       PORT: 3001
       GRAPHQL_PLAYGROUND: true
       GRAPHQL_INTROSPECTION: true
-      CORS_ORIGIN: http://13.38.109.217:3000
+      CORS_ORIGIN: http://localhost:3000
     ports:
       - "3001:3001"
     depends_on:
@@ -50,8 +55,8 @@ services:
     container_name: events_frontend
     restart: unless-stopped
     environment:
-      NEXT_PUBLIC_API_URL: http://13.38.109.217:3001
-      NODE_ENV: ${NODE_ENV:-development}
+      NEXT_PUBLIC_API_URL: http://localhost:3001
+      NODE_ENV: ${NODE_ENV:-production}
     ports:
       - "3000:3000"
     depends_on:
@@ -62,7 +67,7 @@ services:
       - /app/.next
     networks:
       - events_network
-    command: pnpm run dev
+    command: sh -c "pnpm run build && pnpm run start"
 
   redis:
     image: redis:7-alpine
@@ -74,6 +79,40 @@ services:
       - redis_data:/data
     networks:
       - events_network
+
+#  redis-commander:
+#    image: rediscommander/redis-commander:latest
+#    container_name: events_redis_ui
+#    restart: unless-stopped
+#    environment:
+#      REDIS_HOSTS: local:redis:6379
+#      HTTP_USER: admin
+#      HTTP_PASSWORD: admin
+#    ports:
+#      - "8081:8081"
+#    depends_on:
+#      - redis
+#    networks:
+#      - events_network
+
+#  prisma-studio:
+#    build:
+#      context: ./backend
+#      dockerfile: Dockerfile.dev
+#    container_name: events_prisma_studio
+#    restart: unless-stopped
+#    environment:
+#      DATABASE_URL: postgresql://${DB_USER:-events_user}:${DB_PASSWORD:-events_pass}@postgres:5432/${DB_NAME:-events_db}
+#    ports:
+#      - "5555:5555"
+#    depends_on:
+#      - postgres
+#    volumes:
+#      - ./backend:/app
+#      - /app/node_modules
+#    networks:
+#      - events_network
+#    command: npx prisma studio --port 5555 --browser none
 
 volumes:
   postgres_data:
