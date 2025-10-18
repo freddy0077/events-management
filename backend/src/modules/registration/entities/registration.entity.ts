@@ -84,6 +84,14 @@ export class Registration {
   @Field(() => PaymentStatus)
   paymentStatus?: PaymentStatus;
 
+  // Computed field for registration status
+  @Field({ nullable: true })
+  status?: string;
+
+  // Computed field for QR code scan status
+  @Field({ nullable: true })
+  qrCodeScanned?: boolean;
+
   // Relations handled by field resolvers
   @Field(() => Event, { nullable: true })
   event?: any;

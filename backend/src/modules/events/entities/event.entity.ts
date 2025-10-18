@@ -2,6 +2,7 @@ import { ObjectType, Field, ID, Int, Float } from '@nestjs/graphql';
 import { Meal } from '../../meals/entities/meal.entity';
 import { Category } from './category.entity';
 import { EventStaff } from './event-staff.entity';
+import { Registration } from '../../registration/entities/registration.entity';
 
 @ObjectType()
 export class Event {
@@ -76,7 +77,8 @@ export class Event {
   @Field(() => [Category], { nullable: true })
   categories?: Category[];
   
-  registrations?: any[];
+  @Field(() => [Registration], { nullable: true })
+  registrations?: Registration[];
   
   @Field(() => [Meal], { nullable: true })
   meals?: Meal[];

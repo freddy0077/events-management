@@ -353,7 +353,7 @@ export const useMyAssignedEvents = () => {
   console.log('useMyAssignedEvents hook called')
   const result = useQuery(GET_MY_ASSIGNED_EVENTS, {
     errorPolicy: 'all',
-    fetchPolicy: 'cache-and-network',
+    fetchPolicy: 'network-only', // Force fresh fetch to bypass cache
     notifyOnNetworkStatusChange: true
   })
 

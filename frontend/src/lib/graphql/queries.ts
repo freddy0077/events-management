@@ -99,6 +99,7 @@ export const GET_CURRENT_USER = gql`
 `
 
 // Get events assigned to current user as staff
+// Updated: Fixed transaction.status -> transaction.paymentStatus
 export const GET_MY_ASSIGNED_EVENTS = gql`
   query GetMyAssignedEvents {
     myAssignedEvents {
@@ -112,6 +113,10 @@ export const GET_MY_ASSIGNED_EVENTS = gql`
       maxCapacity
       isActive
       badgeTemplateId
+      totalRegistrations
+      approvedRegistrations
+      pendingRegistrations
+      paidRegistrations
       categories {
         id
         name
@@ -125,6 +130,33 @@ export const GET_MY_ASSIGNED_EVENTS = gql`
         permissions
         isActive
         assignedAt
+      }
+      registrations {
+        id
+        firstName
+        lastName
+        email
+        phone
+        address
+        status
+        paymentStatus
+        qrCode
+        qrCodeScanned
+        checkedIn
+        checkedInAt
+        createdAt
+        category {
+          id
+          name
+          price
+        }
+        transactions {
+          id
+          amount
+          paymentStatus
+          receiptNumber
+          createdAt
+        }
       }
     }
   }
@@ -184,8 +216,10 @@ export const GET_MY_EVENT_REGISTRATIONS = gql`
       phone
       address
       zone
+      status
       paymentStatus
       qrCode
+      qrCodeScanned
       badgePrinted
       badgePrintedAt
       badgePrintCount

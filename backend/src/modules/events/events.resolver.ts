@@ -11,6 +11,7 @@ import { GqlAuthGuard } from '../auth/guards/gql-auth.guard';
 import { StaffPermissionGuard, StaffPermissions, StaffPermission } from '../auth/guards/staff-permission.guard';
 import { User } from '../auth/entities/user.entity';
 import { Meal } from '../meals/entities/meal.entity';
+import { Registration } from '../registration/entities/registration.entity';
 import { PrismaService } from '../../prisma/prisma.service';
 import { PaymentStatus } from '@prisma/client';
 import { Audit } from '../../decorators/audit.decorator';
@@ -186,6 +187,48 @@ export class EventsResolver {
   @ResolveField(() => [EventStaff])
   staff(@Parent() event: Event): EventStaff[] {
     return event.staff || [];
+  }
+
+  @ResolveField(() => [Registration])
+  async registrations(@Parent() event: Event): Promise<Registration[]> {
+    const registrations = await this.prisma.registration.findMany({
+      where: { eventId: event.id },
+      include: {
+        category: true,
+        event: true,
+        transactions: true,
+        mealAttendances: true,
+      },
+      orderBy: { createdAt: 'desc' }
+    });
+
+    // Map to include computed fields
+    return registrations.map(reg => ({
+      ...reg,
+      paymentStatus: this.determinePaymentStatus(reg.transactions),
+      qrCodeScanned: reg.mealAttendances?.some(ma => ma.scannedAt) || false,
+      status: this.determineRegistrationStatus(reg.transactions),
+    })) as any;
+  }
+
+  private determinePaymentStatus(transactions: any[]): PaymentStatus {
+    if (!transactions || transactions.length === 0) {
+      return PaymentStatus.PENDING;
+    }
+    
+    const latestTransaction = transactions[transactions.length - 1];
+    return latestTransaction.paymentStatus || PaymentStatus.PENDING;
+  }
+
+  private determineRegistrationStatus(transactions: any[]): string {
+    const paymentStatus = this.determinePaymentStatus(transactions);
+    
+    if (paymentStatus === PaymentStatus.PAID) {
+      return 'APPROVED';
+    } else if (paymentStatus === PaymentStatus.FAILED) {
+      return 'DECLINED';
+    }
+    return 'PENDING';
   }
 
   // Event Manager Assignment Mutations
